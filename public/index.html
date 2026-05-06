@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image AI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Sidebar ─────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="logo">Image AI</div>
+    <nav>
+      <button class="tab active" data-tab="generate">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="2" y="2" width="16" height="16" rx="3"/>
+          <path d="M6 14l3-5 2.5 3 2-2.5 2.5 4.5"/>
+          <circle cx="13.5" cy="6.5" r="1.5"/>
+        </svg>
+        Generate Image
+      </button>
+      <button class="tab" data-tab="image-to-prompt">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="2" y="4" width="10" height="10" rx="2"/>
+          <path d="M14 7h4M14 10h3M14 13h4"/>
+        </svg>
+        Image to Prompt
+      </button>
+      <button class="tab" data-tab="improve-prompt">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M10 2l2 5h5l-4 3 1.5 5L10 12l-4.5 3L7 10 3 7h5z"/>
+        </svg>
+        Improve Prompt
+      </button>
+    </nav>
+  </aside>
+
+  <!-- ── Main ────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- ── Generate Image ──────────────────────────── -->
+    <section id="panel-generate" class="panel active">
+      <div class="form-col">
+        <form id="form-generate">
+
+          <div class="field">
+            <label for="gen-prompt">Prompt <span class="req">*</span></label>
+            <textarea id="gen-prompt" rows="5" placeholder="Describe the image you want to generate…" required></textarea>
+          </div>
+
+          <div class="field">
+            <label for="gen-model">Model <span class="req">*</span></label>
+            <select id="gen-model" disabled>
+              <option>Loading models…</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="gen-aspect">Aspect Ratio</label>
+            <select id="gen-aspect">
+              <option value="">Default</option>
+              <option value="1:1">Square 1:1</option>
+              <option value="16:9">Widescreen 16:9</option>
+              <option value="9:16">Portrait 9:16</option>
+              <option value="4:3">Classic 4:3</option>
+              <option value="3:4">Classic 3:4</option>
+              <option value="3:2">Landscape 3:2</option>
+              <option value="2:3">Portrait 2:3</option>
+              <option value="21:9">Cinematic 21:9</option>
+            </select>
+          </div>
+
+          <details class="advanced-toggle">
+            <summary>Reference image (optional)</summary>
+            <div class="advanced-body">
+              <p class="field-hint">Upload a reference image to guide the style or composition of the output. Only supported by multimodal generation models.</p>
+              <div class="field">
+                <div class="drop-zone" id="gen-drop">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <span>Drop image or <u>browse</u></span>
+                  <input type="file" id="gen-ref-file" accept="image/*" />
+                </div>
+                <div class="file-preview" id="gen-ref-preview"></div>
+              </div>
+              <div id="gen-last-wrap" class="last-image-option" hidden>
+                <p class="field-hint">Or use the last generated image:</p>
+                <div class="last-image-row">
+                  <img id="gen-last-thumb" class="last-thumb" alt="Last generated" />
+                  <button type="button" id="btn-use-last-gen" class="btn-secondary">Use as reference</button>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <button type="submit" class="btn-primary" id="btn-generate">Generate</button>
+        </form>
+      </div>
+      <div class="result-col" id="results-generate">
+        <div class="empty-state">Your generated image will appear here</div>
+      </div>
+    </section>
+
+    <!-- ── Image to Prompt ─────────────────────────── -->
+    <section id="panel-image-to-prompt" class="panel">
+      <div class="form-col">
+        <form id="form-i2p">
+
+          <div class="field">
+            <label>Image <span class="req">*</span></label>
+            <div class="drop-zone" id="i2p-drop">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Drop image or <u>browse</u></span>
+              <input type="file" id="i2p-file" accept="image/*" />
+            </div>
+            <div class="file-preview" id="i2p-preview"></div>
+          </div>
+
+          <div class="field">
+            <label for="i2p-url">Or paste an image URL</label>
+            <input type="url" id="i2p-url" placeholder="https://example.com/photo.jpg" />
+          </div>
+          <div id="i2p-last-wrap" class="last-image-option" hidden>
+            <p class="field-hint">Or use the last generated image:</p>
+            <div class="last-image-row">
+              <img id="i2p-last-thumb" class="last-thumb" alt="Last generated" />
+              <button type="button" id="btn-use-last-i2p" class="btn-secondary">Use this image</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="i2p-model">Vision model <span class="req">*</span></label>
+            <select id="i2p-model" disabled>
+              <option>Loading models…</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-primary">Generate Prompt</button>
+        </form>
+      </div>
+      <div class="result-col" id="results-i2p">
+        <div class="empty-state">The generated prompt will appear here</div>
+      </div>
+    </section>
+
+    <!-- ── Improve Prompt ──────────────────────────── -->
+    <section id="panel-improve-prompt" class="panel">
+      <div class="form-col">
+        <form id="form-ip">
+
+          <div class="field">
+            <label for="ip-prompt">Prompt <span class="req">*</span></label>
+            <textarea id="ip-prompt" rows="6" placeholder="Enter a rough prompt to improve, e.g. "dog in forest"…" required></textarea>
+          </div>
+
+          <div class="field">
+            <label for="ip-model">Model <span class="req">*</span></label>
+            <select id="ip-model" disabled>
+              <option>Loading models…</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-primary">Improve Prompt</button>
+        </form>
+      </div>
+      <div class="result-col" id="results-ip">
+        <div class="empty-state">The improved prompt will appear here</div>
+      </div>
+    </section>
+
+  </div><!-- .main -->
+</div><!-- #app -->
+<script src="app.js"></script>
+</body>
+</html>

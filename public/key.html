@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenRouter Chat — Enter API Key</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #7c5af5;
+      --primary-hover: #6b47e8;
+      --border: #e4e4eb;
+      --text: #18181b;
+      --text-muted: #71718a;
+      --surface: #ffffff;
+      --bg: #f5f5f8;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
+    }
+
+    .logo {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .02em;
+      margin-bottom: 6px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 9px 40px 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font: inherit;
+      font-size: 13px;
+      color: var(--text);
+      background: #fafafc;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    input:focus { border-color: var(--primary); }
+
+    .toggle-vis {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 2px;
+      line-height: 0;
+    }
+
+    .toggle-vis:hover { color: var(--text); }
+
+    .error {
+      font-size: 12px;
+      color: #c53030;
+      margin-top: 6px;
+      min-height: 16px;
+    }
+
+    button[type="submit"] {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 10px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    button[type="submit"]:hover { background: var(--primary-hover); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">OpenRouter Chat</div>
+    <h1>Enter your API key</h1>
+    <p class="subtitle">
+      Your key is used to authenticate requests to the OpenRouter API.
+      It is appended to the URL and never stored on the server.
+    </p>
+
+    <form id="key-form" novalidate>
+      <label for="api-key">Magnific API Key</label>
+      <div class="input-wrap">
+        <input
+          type="password"
+          id="api-key"
+          placeholder="sk-or-…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="button" class="toggle-vis" id="toggle-vis" aria-label="Show/hide key">
+          <svg id="icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+          <svg id="icon-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="display:none">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
+        </button>
+      </div>
+      <p class="error" id="error-msg" aria-live="polite"></p>
+      <button type="submit">Open app</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('key-form');
+    const input = document.getElementById('api-key');
+    const errorMsg = document.getElementById('error-msg');
+    const toggleBtn = document.getElementById('toggle-vis');
+    const iconShow = document.getElementById('icon-show');
+    const iconHide = document.getElementById('icon-hide');
+
+    toggleBtn.addEventListener('click', () => {
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      iconShow.style.display = isPassword ? 'none' : '';
+      iconHide.style.display = isPassword ? '' : 'none';
+    });
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const key = input.value.trim();
+      if (!key) {
+        errorMsg.textContent = 'Please enter your API key.';
+        input.focus();
+        return;
+      }
+      errorMsg.textContent = '';
+      window.location.href = `/?key=${encodeURIComponent(key)}`;
+    });
+
+    input.addEventListener('input', () => {
+      if (errorMsg.textContent) errorMsg.textContent = '';
+    });
+  </script>
+</body>
+</html>
