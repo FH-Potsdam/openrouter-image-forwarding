@@ -208,5 +208,11 @@ router.post('/api/improve-prompt', async (req, res) => {
   }
 });
 
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.too.large')
+    return res.status(413).json({ error: { message: 'Image too large. Please use a smaller file.' } });
+  next(err);
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));

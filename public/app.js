@@ -179,6 +179,22 @@ function fileToDataURL(file) {
   });
 }
 
+function resizeImageClientSide(dataUrl, maxDimension = 1024) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      if (img.width <= maxDimension && img.height <= maxDimension) { resolve(dataUrl); return; }
+      const scale = maxDimension / Math.max(img.width, img.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.src = dataUrl;
+  });
+}
+
 function previewFile(file, previewEl) {
   previewEl.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="preview" />`;
 }
@@ -376,8 +392,8 @@ document.getElementById('form-generate').addEventListener('submit', async e => {
 
   const body = { prompt, model };
   if (aspect) body.aspect_ratio = aspect;
-  if (refFile)          body.reference_image = await fileToDataURL(refFile);
-  else if (selectedRef) body.reference_image = selectedRef;
+  if (refFile)          body.reference_image = await fileToDataURL(refFile).then(url => resizeImageClientSide(url));
+  else if (selectedRef) body.reference_image = await resizeImageClientSide(selectedRef);
 
   const loadingEl = prependLoading(resultEl, 'Generating image…');
   btn.disabled = true;
