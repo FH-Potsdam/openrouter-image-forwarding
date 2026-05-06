@@ -10,7 +10,11 @@ const BASE = 'https://openrouter.ai/api/v1';
 
 app.use(cors());
 app.use(express.json({ limit: '20mb' })); // base64 images
-app.use(express.static(join(__dirname, 'public')));
+
+// All routes (static + API) are served under /images
+const router = express.Router();
+app.use('/images', express.static(join(__dirname, 'public')));
+app.use('/images', router);
 
 function getKey(req, res) {
   const key = req.headers['x-api-key'];
@@ -45,7 +49,7 @@ async function pipeSSE(req, res, upstream) {
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
-app.get('/api/models', async (req, res) => {
+router.get('/api/models', async (req, res) => {
   const key = getKey(req, res);
   if (!key) return;
   try {
@@ -62,7 +66,7 @@ app.get('/api/models', async (req, res) => {
 // Uses chat/completions with modalities:["image"].
 // Optionally accepts a reference image (base64 data URL or https URL) for img2img.
 
-app.post('/api/generate-image', async (req, res) => {
+router.post('/api/generate-image', async (req, res) => {
   const key = getKey(req, res);
   if (!key) return;
   const { prompt, model, aspect_ratio, reference_image } = req.body;
@@ -105,7 +109,7 @@ const IMAGE_TO_PROMPT_SYSTEM =
   `lighting, mood, and relevant technical keywords (e.g. "cinematic lighting", "8k", ` +
   `"photorealistic"). Return only the prompt — no explanation, no preamble, no quotation marks.`;
 
-app.post('/api/image-to-prompt', async (req, res) => {
+router.post('/api/image-to-prompt', async (req, res) => {
   const key = getKey(req, res);
   if (!key) return;
   const { image, model } = req.body;
@@ -153,7 +157,7 @@ const IMPROVE_PROMPT_SYSTEM =
   `modifiers (e.g. "highly detailed", "4k", "award-winning photograph"). ` +
   `Return only the improved prompt as a single paragraph. No explanation, no alternatives, no preamble.`;
 
-app.post('/api/improve-prompt', async (req, res) => {
+router.post('/api/improve-prompt', async (req, res) => {
   const key = getKey(req, res);
   if (!key) return;
   const { prompt, model } = req.body;

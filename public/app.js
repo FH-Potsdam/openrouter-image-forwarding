@@ -1,5 +1,7 @@
 // ─── API key from URL param ────────────────────────────────────────────────────
 
+const BASE_PATH = '/images';
+
 const params = new URLSearchParams(location.search);
 const API_KEY = params.get('key') ?? '';
 
@@ -141,7 +143,7 @@ fillSelect(document.getElementById('ip-model'),   FALLBACK.text,      'openai/gp
 
 (async () => {
   try {
-    const res = await fetch('/api/models', { headers: apiHeaders() });
+    const res = await fetch(`${BASE_PATH}/api/models`, { headers: apiHeaders() });
     if (!res.ok) return;
     const data = await res.json();
     const all = data?.data ?? [];
@@ -338,7 +340,7 @@ document.getElementById('form-generate').addEventListener('submit', async e => {
   btn.disabled = true;
 
   try {
-    const res = await fetch('/api/generate-image', {
+    const res = await fetch(`${BASE_PATH}/api/generate-image`, {
       method: 'POST', headers: apiHeaders(), body: JSON.stringify(body),
     });
     const data = await res.json();
@@ -376,7 +378,7 @@ document.getElementById('form-i2p').addEventListener('submit', async e => {
   btn.disabled = true;
 
   try {
-    const res = await fetch('/api/image-to-prompt', {
+    const res = await fetch(`${BASE_PATH}/api/image-to-prompt`, {
       method: 'POST', headers: apiHeaders(), body: JSON.stringify({ image, model }),
     });
     if (!res.ok) {
@@ -423,7 +425,7 @@ document.getElementById('form-ip').addEventListener('submit', async e => {
   btn.disabled = true;
 
   try {
-    const res = await fetch('/api/improve-prompt', {
+    const res = await fetch(`${BASE_PATH}/api/improve-prompt`, {
       method: 'POST', headers: apiHeaders(), body: JSON.stringify({ prompt, model }),
     });
     if (!res.ok) {
