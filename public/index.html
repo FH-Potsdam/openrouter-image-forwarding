@@ -73,7 +73,7 @@
           </div>
 
           <details class="advanced-toggle">
-            <summary>Reference image (optional)</summary>
+            <summary>Upload reference image (optional)</summary>
             <div class="advanced-body">
               <p class="field-hint">Upload a reference image to guide the style or composition of the output. Only supported by multimodal generation models.</p>
               <div class="field">
@@ -84,15 +84,16 @@
                 </div>
                 <div class="file-preview" id="gen-ref-preview"></div>
               </div>
-              <div id="gen-last-wrap" class="last-image-option" hidden>
-                <p class="field-hint">Or use the last generated image:</p>
-                <div class="last-image-row">
-                  <img id="gen-last-thumb" class="last-thumb" alt="Last generated" />
-                  <button type="button" id="btn-use-last-gen" class="btn-secondary">Use as reference</button>
-                </div>
-              </div>
             </div>
           </details>
+
+          <div id="gen-last-wrap" class="last-image-option">
+            <p class="field-hint">Reference image</p>
+            <div class="last-image-row">
+              <img id="gen-last-thumb" class="last-thumb" alt="" />
+              <button type="button" id="btn-use-last-gen" class="btn-secondary" hidden>× Remove</button>
+            </div>
+          </div>
 
           <button type="submit" class="btn-primary" id="btn-generate">Generate</button>
         </form>
@@ -121,11 +122,11 @@
             <label for="i2p-url">Or paste an image URL</label>
             <input type="url" id="i2p-url" placeholder="https://example.com/photo.jpg" />
           </div>
-          <div id="i2p-last-wrap" class="last-image-option" hidden>
-            <p class="field-hint">Or use the last generated image:</p>
+          <div id="i2p-last-wrap" class="last-image-option">
+            <p class="field-hint">Reference image</p>
             <div class="last-image-row">
-              <img id="i2p-last-thumb" class="last-thumb" alt="Last generated" />
-              <button type="button" id="btn-use-last-i2p" class="btn-secondary">Use this image</button>
+              <img id="i2p-last-thumb" class="last-thumb" alt="" />
+              <button type="button" id="btn-use-last-i2p" class="btn-secondary" hidden>× Remove</button>
             </div>
           </div>
 

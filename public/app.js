@@ -25,44 +25,50 @@ function apiHeaders() {
   return { 'Content-Type': 'application/json', 'x-api-key': API_KEY };
 }
 
-// ─── Last generated image ─────────────────────────────────────────────────────
+// ─── Selected reference image ──────────────────────────────────────────────────
 
-let lastImage      = null; // data URL of the most recently generated image
-let genUsingLast   = false;
-let i2pUsingLast   = false;
+const PLACEHOLDER_SVG = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'><line x1='0' y1='0' x2='56' y2='56' stroke='%23ccc' stroke-width='1.5'/><line x1='56' y1='0' x2='0' y2='56' stroke='%23ccc' stroke-width='1.5'/></svg>";
 
-function setLastImage(url) {
-  lastImage = url;
+let selectedRef      = null; // data URL of the currently selected reference
+let activeRefCardBtn = null; // the card button currently marked active
 
-  // Show the option in both forms and update thumbnails
+// Initialise thumbs with placeholder on load.
+for (const prefix of ['gen', 'i2p']) {
+  const thumb = document.getElementById(`${prefix}-last-thumb`);
+  if (thumb) thumb.src = PLACEHOLDER_SVG;
+}
+
+function setSelectedRef(url, btn) {
+  if (activeRefCardBtn === btn) { clearSelectedRef(); return; }
+  if (activeRefCardBtn) {
+    activeRefCardBtn.classList.remove('active');
+    activeRefCardBtn.textContent = 'Use as reference';
+  }
+  selectedRef      = url;
+  activeRefCardBtn = btn;
+  btn.classList.add('active');
+  btn.textContent = 'Selected ✓';
   for (const prefix of ['gen', 'i2p']) {
-    const wrap  = document.getElementById(`${prefix}-last-wrap`);
-    const thumb = document.getElementById(`${prefix}-last-thumb`);
-    if (!wrap) continue;
-    thumb.src   = url;
-    wrap.hidden = false;
+    const thumb    = document.getElementById(`${prefix}-last-thumb`);
+    const removeBtn = document.getElementById(`btn-use-last-${prefix}`);
+    if (!thumb) continue;
+    thumb.src = url;
+    if (removeBtn) removeBtn.hidden = false;
   }
 }
 
-function setGenUsingLast(active) {
-  genUsingLast = active;
-  document.getElementById('btn-use-last-gen').classList.toggle('active', active);
-  document.getElementById('btn-use-last-gen').textContent = active ? 'Selected ✓' : 'Use as reference';
-  // deselect file input when switching to last image
-  if (active) {
-    document.getElementById('gen-ref-file').value = '';
-    document.getElementById('gen-ref-preview').innerHTML = '';
+function clearSelectedRef() {
+  if (activeRefCardBtn) {
+    activeRefCardBtn.classList.remove('active');
+    activeRefCardBtn.textContent = 'Use as reference';
   }
-}
-
-function setI2pUsingLast(active) {
-  i2pUsingLast = active;
-  document.getElementById('btn-use-last-i2p').classList.toggle('active', active);
-  document.getElementById('btn-use-last-i2p').textContent = active ? 'Selected ✓' : 'Use this image';
-  if (active) {
-    document.getElementById('i2p-file').value = '';
-    document.getElementById('i2p-preview').innerHTML = '';
-    document.getElementById('i2p-url').value = '';
+  selectedRef      = null;
+  activeRefCardBtn = null;
+  for (const prefix of ['gen', 'i2p']) {
+    const thumb     = document.getElementById(`${prefix}-last-thumb`);
+    const removeBtn = document.getElementById(`btn-use-last-${prefix}`);
+    if (thumb) thumb.src = PLACEHOLDER_SVG;
+    if (removeBtn) removeBtn.hidden = true;
   }
 }
 
@@ -111,7 +117,6 @@ const FALLBACK = {
 };
 
 function fillSelect(selectEl, models, preferred) {
-  // Group by provider prefix
   const groups = {};
   for (const m of models) {
     const provider = m.id.split('/')[0];
@@ -203,14 +208,14 @@ function initDropZone(zoneId, inputId, previewId) {
 initDropZone('gen-drop',  'gen-ref-file', 'gen-ref-preview');
 initDropZone('i2p-drop',  'i2p-file',     'i2p-preview');
 
-// Deselect "use last" when a real file is chosen
-document.getElementById('gen-ref-file').addEventListener('change', () => { if (genUsingLast) setGenUsingLast(false); });
-document.getElementById('i2p-file').addEventListener('change',     () => { if (i2pUsingLast) setI2pUsingLast(false); });
-document.getElementById('i2p-url').addEventListener('input',       () => { if (i2pUsingLast) setI2pUsingLast(false); });
+// Clear selected reference when the user picks a new file or URL instead
+document.getElementById('gen-ref-file').addEventListener('change', () => { if (selectedRef) clearSelectedRef(); });
+document.getElementById('i2p-file').addEventListener('change',     () => { if (selectedRef) clearSelectedRef(); });
+document.getElementById('i2p-url').addEventListener('input',       () => { if (selectedRef) clearSelectedRef(); });
 
-// "Use last image" buttons — toggle on/off
-document.getElementById('btn-use-last-gen').addEventListener('click', () => setGenUsingLast(!genUsingLast));
-document.getElementById('btn-use-last-i2p').addEventListener('click', () => setI2pUsingLast(!i2pUsingLast));
+// "× Remove" buttons in the reference widgets
+document.getElementById('btn-use-last-gen').addEventListener('click', clearSelectedRef);
+document.getElementById('btn-use-last-i2p').addEventListener('click', clearSelectedRef);
 
 // ─── Result helpers ────────────────────────────────────────────────────────────
 
@@ -242,20 +247,58 @@ function extractError(status, body) {
   }
 }
 
-// Show an image result with a download link.
-function showImage(el, dataUrl, revisedPrompt) {
-  const card = document.createElement('div');
-  card.className = 'image-card';
+function escHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Prepend a loading placeholder; returns the element so the caller can remove it.
+function prependLoading(resultEl, msg = 'Working…') {
+  resultEl.querySelector('.empty-state')?.remove();
+  const el = document.createElement('div');
+  el.className = 'loading';
+  el.innerHTML = `<div class="spinner"></div><p>${msg}</p>`;
+  resultEl.prepend(el);
+  return el;
+}
+
+// Prepend an error card (keeps existing results visible).
+function prependError(resultEl, msg) {
+  const el = document.createElement('div');
+  el.className = 'error-card';
+  el.textContent = msg;
+  resultEl.prepend(el);
+}
+
+// Add an image result card at the top of resultEl (newest first).
+// Shows prompt, model, aspect ratio as meta tags and a "Use as reference" button.
+function addImageCard(resultEl, { dataUrl, prompt, model, aspect, referenceUrl }) {
+  resultEl.querySelector('.empty-state')?.remove();
 
   const ext = dataUrl.startsWith('data:image/png') ? 'png' : 'jpg';
+  const tags = [
+    `<span class="meta-tag">${escHtml(model)}</span>`,
+    ...(aspect      ? [`<span class="meta-tag">${escHtml(aspect)}</span>`]  : []),
+    ...(referenceUrl ? [`<span class="meta-tag meta-tag--ref">ref used</span>`] : []),
+  ].join('');
+
+  const card = document.createElement('div');
+  card.className = 'image-card';
   card.innerHTML = `
     <img src="${dataUrl}" alt="Generated image" />
+    <div class="image-card-meta">
+      <p class="meta-prompt">${escHtml(prompt)}</p>
+      <div class="meta-params">${tags}</div>
+    </div>
     <div class="image-card-footer">
-      ${revisedPrompt ? `<span style="font-size:11px;color:#a0a0b8;flex:1;line-height:1.4">${revisedPrompt}</span>` : ''}
+      <button type="button" class="btn-secondary btn-use-ref">Use as reference</button>
       <a href="${dataUrl}" download="generated.${ext}" class="btn-secondary">Download</a>
     </div>`;
-  el.innerHTML = '';
-  el.appendChild(card);
+
+  card.querySelector('.btn-use-ref').addEventListener('click', function () {
+    setSelectedRef(dataUrl, this);
+  });
+
+  resultEl.prepend(card);
 }
 
 // Show a streaming text result with Copy + optional "Use as prompt" button.
@@ -326,17 +369,17 @@ document.getElementById('form-generate').addEventListener('submit', async e => {
   const resultEl = document.getElementById('results-generate');
   const btn = document.getElementById('btn-generate');
 
-  const prompt = document.getElementById('gen-prompt').value.trim();
-  const model  = document.getElementById('gen-model').value;
-  const aspect = document.getElementById('gen-aspect').value || undefined;
+  const prompt  = document.getElementById('gen-prompt').value.trim();
+  const model   = document.getElementById('gen-model').value;
+  const aspect  = document.getElementById('gen-aspect').value || undefined;
   const refFile = document.getElementById('gen-ref-file').files[0];
 
   const body = { prompt, model };
   if (aspect) body.aspect_ratio = aspect;
-  if (genUsingLast && lastImage)          body.reference_image = lastImage;
-  else if (refFile)                        body.reference_image = await fileToDataURL(refFile);
+  if (refFile)          body.reference_image = await fileToDataURL(refFile);
+  else if (selectedRef) body.reference_image = selectedRef;
 
-  setLoading(resultEl, 'Generating image…');
+  const loadingEl = prependLoading(resultEl, 'Generating image…');
   btn.disabled = true;
 
   try {
@@ -350,10 +393,11 @@ document.getElementById('form-generate').addEventListener('submit', async e => {
     const imgUrl = msg?.images?.[0]?.image_url?.url;
     if (!imgUrl) throw new Error('No image returned. The selected model may not support image generation.');
 
-    showImage(resultEl, imgUrl, msg?.content || undefined);
-    setLastImage(imgUrl);
+    loadingEl.remove();
+    addImageCard(resultEl, { dataUrl: imgUrl, prompt, model, aspect, referenceUrl: body.reference_image });
   } catch (err) {
-    setError(resultEl, err.message);
+    loadingEl.remove();
+    prependError(resultEl, err.message);
   } finally {
     btn.disabled = false;
   }
@@ -370,9 +414,12 @@ document.getElementById('form-i2p').addEventListener('submit', async e => {
   const urlIn = document.getElementById('i2p-url').value.trim();
   const model = document.getElementById('i2p-model').value;
 
-  if (!file && !urlIn && !i2pUsingLast) { setError(resultEl, 'Please upload an image, paste a URL, or use the last generated image.'); return; }
+  if (!file && !urlIn && !selectedRef) {
+    setError(resultEl, 'Please upload an image, paste a URL, or select a reference image.');
+    return;
+  }
 
-  const image = i2pUsingLast && lastImage ? lastImage : (file ? await fileToDataURL(file) : urlIn);
+  const image = file ? await fileToDataURL(file) : (urlIn || selectedRef);
 
   setLoading(resultEl, 'Analysing image…');
   btn.disabled = true;

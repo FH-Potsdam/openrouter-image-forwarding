@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import sharp from 'sharp';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -24,6 +25,22 @@ function getKey(req, res) {
 
 function orHeaders(key) {
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` };
+}
+
+// Resize a base64 data URL image so its longest edge is ≤ maxDimension.
+// HTTPS URLs are passed through unchanged.
+async function resizeBase64Image(dataUrl, maxDimension = 1024) {
+  const match = dataUrl.match(/^data:image\/(\w+);base64,(.+)$/s);
+  if (!match) return dataUrl;
+  const buffer = Buffer.from(match[2], 'base64');
+  const img = sharp(buffer);
+  const { width, height } = await img.metadata();
+  if (width <= maxDimension && height <= maxDimension) return dataUrl;
+  const resized = await img
+    .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 85 })
+    .toBuffer();
+  return `data:image/jpeg;base64,${resized.toString('base64')}`;
 }
 
 async function parseJSON(r) {
@@ -71,9 +88,10 @@ router.post('/api/generate-image', async (req, res) => {
   if (!key) return;
   const { prompt, model, aspect_ratio, reference_image } = req.body;
 
-  const content = reference_image
+  const refImage = reference_image ? await resizeBase64Image(reference_image) : null;
+  const content = refImage
     ? [
-        { type: 'image_url', image_url: { url: reference_image } },
+        { type: 'image_url', image_url: { url: refImage } },
         { type: 'text', text: prompt },
       ]
     : prompt;
@@ -115,6 +133,7 @@ router.post('/api/image-to-prompt', async (req, res) => {
   const { image, model } = req.body;
 
   try {
+    const resizedImage = await resizeBase64Image(image);
     const up = await fetch(`${BASE}/chat/completions`, {
       method: 'POST',
       headers: orHeaders(key),
@@ -125,7 +144,7 @@ router.post('/api/image-to-prompt', async (req, res) => {
           {
             role: 'user',
             content: [
-              { type: 'image_url', image_url: { url: image } },
+              { type: 'image_url', image_url: { url: resizedImage } },
               { type: 'text', text: 'Generate the image generation prompt.' },
             ],
           },

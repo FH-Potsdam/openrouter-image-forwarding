@@ -95,7 +95,7 @@ body {
 .main { flex: 1; overflow: hidden; display: flex; }
 
 .panel { display: none; flex: 1; overflow: hidden; }
-.panel.active { display: grid; grid-template-columns: 340px 1fr; }
+.panel.active { display: grid; grid-template-columns: 340px 1fr; grid-auto-rows: 1fr; }
 
 /* ─── Form column ────────────────────────────────── */
 
@@ -104,6 +104,7 @@ body {
   border-right: 1px solid var(--border);
   overflow-y: auto;
   padding: 24px 20px;
+  min-height: 0;
 }
 
 form { display: flex; flex-direction: column; gap: 16px; }
@@ -260,6 +261,7 @@ textarea { resize: vertical; line-height: 1.55; }
   flex-direction: column;
   gap: 16px;
   background: var(--main-bg);
+  min-height: 0;
 }
 
 .empty-state {
@@ -296,11 +298,46 @@ textarea { resize: vertical; line-height: 1.55; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  overflow: hidden;
   box-shadow: var(--shadow);
 }
 
-.image-card img { display: block; width: 100%; height: auto; }
+.image-card img { display: block; width: 100%; height: auto; border-radius: var(--radius) var(--radius) 0 0; }
+
+.image-card-meta {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.meta-prompt {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.meta-params {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.meta-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.meta-tag--ref {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #f3f0ff;
+}
 
 .image-card-footer {
   display: flex;
