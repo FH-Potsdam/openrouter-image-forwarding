@@ -61,6 +61,14 @@ A standalone form that accepts a key and redirects to the main app with `?key=` 
 http://localhost:1515/key.html
 ```
 
+### `/credits.html` — API key details
+
+Shows details for the key passed in the URL, fetched from `GET https://openrouter.ai/api/v1/key`. Displays label, credit limit, remaining credits, limit reset cadence, all-time/daily/weekly/monthly usage (regular and BYOK), free-tier status, and whether BYOK usage counts toward the limit.
+
+```
+http://localhost:1515/credits.html?key=YOUR_KEY
+```
+
 ## Project structure
 
 ```
@@ -72,6 +80,7 @@ magnific-forwarding/
 └── public/
     ├── index.html     # Chat UI
     ├── key.html       # Standalone API key entry page
+    ├── credits.html   # API key details & usage page
     ├── app.js         # Client-side JS
     └── style.css      # Styles
 ```
