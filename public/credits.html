@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenRouter — Credits</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #7c5af5;
+      --border: #e4e4eb;
+      --text: #18181b;
+      --text-muted: #71718a;
+      --surface: #ffffff;
+      --bg: #f5f5f8;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
+    }
+
+    .logo {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .status {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .error {
+      font-size: 13px;
+      color: #c53030;
+      margin-top: 8px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .row:last-child { border-bottom: none; }
+
+    .row-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .02em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .row-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .row-value.large {
+      font-size: 28px;
+      color: var(--primary);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .no-key {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .no-key a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .no-key a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">OpenRouter Chat</div>
+    <h1>Credits</h1>
+    <p class="subtitle">Current balance and usage for the API key in the URL.</p>
+
+    <div id="content">
+      <p class="status"><span class="spinner"></span>Loading…</p>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const key = params.get('key');
+    const content = document.getElementById('content');
+
+    if (!key) {
+      content.innerHTML = '<p class="no-key">No API key found in URL. <a href="/key.html">Enter a key</a>.</p>';
+    } else {
+      fetch('https://openrouter.ai/api/v1/key', {
+        headers: {
+          'Authorization': 'Bearer ' + key,
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(r => {
+          if (!r.ok) return r.json().then(e => Promise.reject(e));
+          return r.json();
+        })
+        .then(data => {
+          const d = data.data ?? data;
+
+          const fmt  = v => typeof v === 'number' ? '$' + v.toFixed(4) : '—';
+          const bool = v => typeof v === 'boolean' ? (v ? 'Yes' : 'No') : '—';
+
+          const rows = [
+            ['Label',              d.label ?? '—',                         false],
+            ['Limit',              d.limit !== null ? fmt(d.limit) : 'Unlimited', false],
+            ['Limit remaining',    d.limit_remaining !== null ? fmt(d.limit_remaining) : 'Unlimited', true],
+            ['Limit reset',        d.limit_reset ?? 'Never',               false],
+            ['Usage (all time)',   fmt(d.usage),                           false],
+            ['Usage (today)',      fmt(d.usage_daily),                     false],
+            ['Usage (this week)',  fmt(d.usage_weekly),                    false],
+            ['Usage (this month)', fmt(d.usage_monthly),                   false],
+            ['BYOK usage (all time)',   fmt(d.byok_usage),                 false],
+            ['BYOK usage (today)',      fmt(d.byok_usage_daily),           false],
+            ['BYOK usage (this week)',  fmt(d.byok_usage_weekly),          false],
+            ['BYOK usage (this month)', fmt(d.byok_usage_monthly),         false],
+            ['Free tier',          bool(d.is_free_tier),                   false],
+            ['BYOK counts toward limit', bool(d.include_byok_in_limit),   false],
+          ];
+
+          content.innerHTML = rows.map(([label, value, large]) => `
+            <div class="row">
+              <span class="row-label">${label}</span>
+              <span class="row-value${large ? ' large' : ''}">${value}</span>
+            </div>`).join('');
+        })
+        .catch(err => {
+          const msg = err?.error?.message ?? err?.message ?? JSON.stringify(err);
+          content.innerHTML = '<p class="error">Error: ' + msg + '</p>';
+        });
+    }
+  </script>
+</body>
+</html>
