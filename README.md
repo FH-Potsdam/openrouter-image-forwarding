@@ -12,6 +12,7 @@ A lightweight Node.js proxy server and browser-based chat UI that connects to th
 - **Image generation** — separate page for generating, describing, and improving prompts for images via OpenRouter image models
 - **Error handling** — maps API error codes (invalid key, no credits, rate limits, etc.) to plain-language messages
 - **Key via URL** — no server-side secrets; each user supplies their own API key in the URL
+- **Privacy notice** — a data-protection modal is shown on every page load of the chat and image tools, informing users that nothing is persisted beyond the browser session
 
 ## Requirements
 
@@ -93,8 +94,9 @@ magnific-forwarding/
     ├── image.html     # Image tools UI (generate / image-to-prompt / improve)
     ├── key.html       # Standalone API key entry page
     ├── credits.html   # API key details & usage page
-    ├── app.js         # Image tools client JS
-    └── style.css      # Shared styles
+    ├── app.js             # Image tools client JS
+    ├── privacy-modal.js   # Privacy/data-protection modal (shown on every session start)
+    └── style.css          # Shared styles
 ```
 
 ## How the API key works

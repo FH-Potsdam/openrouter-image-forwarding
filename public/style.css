@@ -431,6 +431,56 @@ textarea { resize: vertical; line-height: 1.55; }
   line-height: 1.55;
 }
 
+/* ─── Privacy modal ──────────────────────────────── */
+
+#privacy-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.privacy-modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,.2);
+  padding: 32px 28px;
+  max-width: 420px;
+  width: calc(100% - 32px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.privacy-modal-icon svg {
+  width: 48px;
+  height: 48px;
+  color: var(--primary);
+}
+
+.privacy-modal h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.privacy-modal p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.privacy-modal .btn-primary {
+  margin-top: 4px;
+  min-width: 160px;
+}
+
 /* ─── Responsive ─────────────────────────────────── */
 
 @media (max-width: 860px) {
