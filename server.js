@@ -208,6 +208,48 @@ router.post('/api/improve-prompt', async (req, res) => {
   }
 });
 
+// ── Chat completions ──────────────────────────────────────────────────────────
+// Generic streaming chat endpoint; forwards model, messages, and all sampler
+// parameters to OpenRouter.
+
+router.post('/api/chat', async (req, res) => {
+  const key = getKey(req, res);
+  if (!key) return;
+
+  const {
+    model, messages,
+    temperature, top_p, frequency_penalty, presence_penalty,
+    max_tokens, top_k, seed,
+  } = req.body;
+
+  const body = { model, messages, stream: true };
+  if (temperature        !== undefined) body.temperature        = temperature;
+  if (top_p              !== undefined) body.top_p              = top_p;
+  if (frequency_penalty  !== undefined) body.frequency_penalty  = frequency_penalty;
+  if (presence_penalty   !== undefined) body.presence_penalty   = presence_penalty;
+  if (max_tokens != null && max_tokens !== '') body.max_tokens  = Number(max_tokens);
+  if (top_k      != null && top_k      !== '') body.top_k       = Number(top_k);
+  if (seed       != null && seed       !== '') body.seed        = Number(seed);
+
+  try {
+    const up = await fetch(`${BASE}/chat/completions`, {
+      method: 'POST',
+      headers: orHeaders(key),
+      body: JSON.stringify(body),
+    });
+    if (!up.ok) {
+      const data = await parseJSON(up);
+      console.error('[/api/chat] HTTP', up.status, data);
+      return res.status(up.status).json(data);
+    }
+    await pipeSSE(req, res, up);
+  } catch (err) {
+    if (!res.headersSent)
+      res.status(502).json({ error: { message: `Could not reach OpenRouter: ${err.message}` } });
+    else res.end();
+  }
+});
+
 app.use((err, req, res, next) => {
   if (err.type === 'entity.too.large')
     return res.status(413).json({ error: { message: 'Image too large. Please use a smaller file.' } });

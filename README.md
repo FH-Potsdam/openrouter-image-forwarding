@@ -6,8 +6,10 @@ A lightweight Node.js proxy server and browser-based chat UI that connects to th
 
 - **Model selector** — choose from every model available on your OpenRouter account; the list is loaded dynamically on startup
 - **Streaming responses** — assistant replies stream token-by-token via Server-Sent Events
+- **Markdown rendering** — assistant messages are rendered as formatted HTML (headings, lists, code blocks, tables, blockquotes) via [marked](https://marked.js.org/) with [DOMPurify](https://github.com/cure53/DOMPurify) sanitization
 - **System prompt** — optional, collapsible system prompt applied to every request in the session
 - **Multi-turn conversation** — full message history is maintained in the browser and sent on each request
+- **Image generation** — separate page for generating, describing, and improving prompts for images via OpenRouter image models
 - **Error handling** — maps API error codes (invalid key, no credits, rate limits, etc.) to plain-language messages
 - **Key via URL** — no server-side secrets; each user supplies their own API key in the URL
 
@@ -26,7 +28,7 @@ npm install
 npm run dev
 
 # 3. Open the app — replace YOUR_KEY with your OpenRouter key
-open http://localhost:1515/?key=YOUR_KEY
+open http://localhost:1515/chat.html?key=YOUR_KEY
 ```
 
 For production:
@@ -43,19 +45,27 @@ PORT=1515
 
 ## Pages
 
-### `/` — Chat interface
+### `/chat.html` — Chat interface
 
-The main application. Requires a `key` URL parameter containing your OpenRouter API key.
+The main chat application. Requires a `key` URL parameter containing your OpenRouter API key.
 
 ```
-http://localhost:1515/?key=YOUR_KEY
+http://localhost:1515/chat.html?key=YOUR_KEY
 ```
 
-If no key is present the page replaces itself with an instruction screen.
+If no key is present the page replaces itself with an instruction screen. Assistant responses are rendered as formatted markdown (headings, lists, fenced code blocks with syntax-aware theming, tables, blockquotes).
+
+### `/image.html` — Image tools
+
+Three image-related tools in one page: **Generate Image**, **Image to Prompt**, and **Improve Prompt**. Requires the same `key` URL parameter and links back to the chat page preserving the key.
+
+```
+http://localhost:1515/image.html?key=YOUR_KEY
+```
 
 ### `/key.html` — API key entry
 
-A standalone form that accepts a key and redirects to the main app with `?key=` appended. Not linked from the main application — share this URL with users who need a guided entry point.
+A standalone form that accepts a key and redirects to the chat page with `?key=` appended. Not linked from the main application — share this URL with users who need a guided entry point.
 
 ```
 http://localhost:1515/key.html
@@ -78,11 +88,13 @@ magnific-forwarding/
 ├── .env               # PORT override (optional)
 ├── .env.example
 └── public/
-    ├── index.html     # Chat UI
+    ├── chat.html      # Chat UI
+    ├── chat.js        # Chat client JS
+    ├── image.html     # Image tools UI (generate / image-to-prompt / improve)
     ├── key.html       # Standalone API key entry page
     ├── credits.html   # API key details & usage page
-    ├── app.js         # Client-side JS
-    └── style.css      # Styles
+    ├── app.js         # Image tools client JS
+    └── style.css      # Shared styles
 ```
 
 ## How the API key works
