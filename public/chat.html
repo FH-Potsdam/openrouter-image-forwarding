@@ -223,6 +223,115 @@
       font-size: 11px;
       color: var(--text-hint);
     }
+
+    /* ─── Sidebar overrides (chat list) ────────────────────────────────────── */
+
+    .sidebar { overflow: hidden; }
+
+    .sidebar-top {
+      flex-shrink: 0;
+      border-bottom: 1px solid #1d1d24;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 0 6px 8px;
+    }
+    .sidebar-top .logo {
+      padding: 16px 10px 6px;
+      border-bottom: none;
+    }
+
+    .btn-new-chat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 10px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: var(--radius-sm);
+      color: var(--sidebar-fg);
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .12s, color .12s;
+      text-align: left;
+    }
+    .btn-new-chat:hover { background: rgba(255,255,255,.13); color: #fff; }
+    .btn-new-chat svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .chat-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-height: 0;
+    }
+
+    .chat-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--sidebar-fg);
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: left;
+      border: none;
+      width: 100%;
+      overflow: hidden;
+      transition: background .12s, color .12s;
+    }
+    .chat-item:hover  { background: var(--sidebar-hover-bg); color: var(--sidebar-active-fg); }
+    .chat-item.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-fg); }
+
+    .chat-item-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .chat-item-del {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 3px;
+      color: var(--sidebar-fg);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity .12s, background .12s;
+    }
+    .chat-item:hover .chat-item-del { opacity: .55; }
+    .chat-item-del:hover { opacity: 1 !important; background: rgba(255,255,255,.15); color: #fff; }
+    .chat-item-del svg { width: 11px; height: 11px; }
+
+    .sidebar-bottom {
+      flex-shrink: 0;
+      border-top: 1px solid #1d1d24;
+      padding: 6px;
+    }
+
+    @media (max-width: 860px) {
+      .sidebar-top { padding: 0 4px 6px; }
+      .sidebar-top .logo { display: none; }
+      .btn-new-chat { padding: 10px; justify-content: center; }
+      .btn-new-chat span { display: none; }
+      .btn-new-chat svg { width: 16px; height: 16px; }
+      .chat-list { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -230,14 +339,17 @@
 
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="logo">Chat AI</div>
-    <nav>
-      <button class="tab active" data-tab="chat">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
-          <path d="M2 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6l-4 3V4z"/>
+    <div class="sidebar-top">
+      <div class="logo">Chat AI</div>
+      <button class="btn-new-chat" id="btn-new-chat">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M10 4v12M4 10h12"/>
         </svg>
-        Chat
+        <span>New chat</span>
       </button>
+    </div>
+    <div class="chat-list" id="chat-list"></div>
+    <div class="sidebar-bottom">
       <a class="tab" href="image.html" id="link-images">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
           <rect x="2" y="4" width="16" height="12" rx="2"/>
@@ -246,7 +358,7 @@
         </svg>
         Images
       </a>
-    </nav>
+    </div>
   </aside>
 
   <!-- Main -->
