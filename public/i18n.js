@@ -24,7 +24,8 @@
       key_label: 'Magnific API Key',
       key_placeholder: 'sk-or-…',
       key_toggle_aria: 'Show/hide key',
-      key_submit: 'Open app',
+      key_submit_image: 'Images',
+      key_submit_chat: 'Chat',
       key_error_empty: 'Please enter your API key.',
 
       // image.html nav
@@ -183,7 +184,8 @@
       key_label: 'Magnific API-Schlüssel',
       key_placeholder: 'sk-or-…',
       key_toggle_aria: 'Schlüssel anzeigen/verbergen',
-      key_submit: 'App öffnen',
+      key_submit_image: 'Bilder',
+      key_submit_chat: 'Chat',
       key_error_empty: 'Bitte geben Sie Ihren API-Schlüssel ein.',
 
       // image.html nav

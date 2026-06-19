@@ -130,10 +130,14 @@
       min-height: 16px;
     }
 
-    button[type="submit"] {
-      display: block;
-      width: 100%;
+    .btn-row {
+      display: flex;
+      gap: 10px;
       margin-top: 20px;
+    }
+
+    .btn-row button {
+      flex: 1;
       padding: 10px;
       background: var(--primary);
       color: #fff;
@@ -146,7 +150,15 @@
       transition: background .15s;
     }
 
-    button[type="submit"]:hover { background: var(--primary-hover); }
+    .btn-row button:hover { background: var(--primary-hover); }
+
+    .btn-row button.secondary {
+      background: var(--surface);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .btn-row button.secondary:hover { background: #f0edff; }
   </style>
 </head>
 <body>
@@ -182,7 +194,10 @@
         </button>
       </div>
       <p class="error" id="error-msg" aria-live="polite"></p>
-      <button type="submit" data-i18n="key_submit">Open app</button>
+      <div class="btn-row">
+        <button type="submit" data-dest="image" data-i18n="key_submit_image">Images</button>
+        <button type="submit" data-dest="chat" class="secondary" data-i18n="key_submit_chat">Chat</button>
+      </div>
     </form>
   </div>
 
@@ -201,6 +216,11 @@
       iconHide.style.display = isPassword ? '' : 'none';
     });
 
+    let chosenDest = 'image';
+    document.querySelectorAll('.btn-row button').forEach(btn => {
+      btn.addEventListener('click', () => { chosenDest = btn.dataset.dest; });
+    });
+
     form.addEventListener('submit', e => {
       e.preventDefault();
       const key = input.value.trim();
@@ -210,7 +230,8 @@
         return;
       }
       errorMsg.textContent = '';
-      window.location.href = I18n.addLangParam(`/images/image.html?key=${encodeURIComponent(key)}`);
+      const dest = chosenDest === 'chat' ? 'chat.html' : 'image.html';
+      window.location.href = I18n.addLangParam(`/${dest}?key=${encodeURIComponent(key)}`);
     });
 
     input.addEventListener('input', () => {
