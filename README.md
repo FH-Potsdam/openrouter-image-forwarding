@@ -65,7 +65,7 @@ http://localhost:1515/image.html?key=YOUR_KEY
 
 ### `/key.html` — API key entry
 
-A standalone form that accepts a key and redirects to the chat page with `?key=` appended. Not linked from the main application — share this URL with users who need a guided entry point.
+A standalone form that accepts an API key. After submitting, the user chooses where to go: **Images** opens `/image.html` and **Chat** opens `/chat.html`, both with `?key=` appended. Not linked from the main application — share this URL with users who need a guided entry point.
 
 ```
 http://localhost:1515/key.html
