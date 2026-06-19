@@ -231,7 +231,7 @@
       }
       errorMsg.textContent = '';
       const dest = chosenDest === 'chat' ? 'chat.html' : 'image.html';
-      window.location.href = I18n.addLangParam(`/${dest}?key=${encodeURIComponent(key)}`);
+      window.location.href = I18n.addLangParam(`/images/${dest}?key=${encodeURIComponent(key)}`);
     });
 
     input.addEventListener('input', () => {
