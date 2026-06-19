@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OpenRouter — Credits</title>
+  <title data-i18n="page_title_credits">OpenRouter — Credits</title>
+  <script src="i18n.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -43,8 +44,28 @@
       font-size: 15px;
       font-weight: 700;
       color: var(--text);
-      margin-bottom: 28px;
+      margin-bottom: 12px;
     }
+
+    #lang-toggle { margin-bottom: 20px; }
+
+    .lang-toggle { display: flex; gap: 4px; }
+
+    .lang-toggle button {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: background .12s, color .12s, border-color .12s;
+      font-family: inherit;
+    }
+
+    .lang-toggle button:hover { border-color: var(--primary); color: var(--primary); }
+    .lang-toggle button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
     h1 {
       font-size: 20px;
@@ -130,12 +151,13 @@
 </head>
 <body>
   <div class="card">
-    <div class="logo">OpenRouter Chat</div>
-    <h1>Credits</h1>
-    <p class="subtitle">Current balance and usage for the API key in the URL.</p>
+    <div class="logo" data-i18n="logo_chat">OpenRouter Chat</div>
+    <div id="lang-toggle"></div>
+    <h1 data-i18n="credits_title">Credits</h1>
+    <p class="subtitle" data-i18n="credits_subtitle">Current balance and usage for the API key in the URL.</p>
 
     <div id="content">
-      <p class="status"><span class="spinner"></span>Loading…</p>
+      <p class="status"><span class="spinner"></span><span data-i18n="credits_loading">Loading…</span></p>
     </div>
   </div>
 
@@ -145,7 +167,7 @@
     const content = document.getElementById('content');
 
     if (!key) {
-      content.innerHTML = '<p class="no-key">No API key found in URL. <a href="/key.html">Enter a key</a>.</p>';
+      content.innerHTML = `<p class="no-key">${I18n.t('credits_no_key')} <a href="key.html">${I18n.t('credits_enter_key')}</a>.</p>`;
     } else {
       fetch('https://openrouter.ai/api/v1/key', {
         headers: {
@@ -161,23 +183,25 @@
           const d = data.data ?? data;
 
           const fmt  = v => typeof v === 'number' ? '$' + v.toFixed(4) : '—';
-          const bool = v => typeof v === 'boolean' ? (v ? 'Yes' : 'No') : '—';
+          const bool = v => typeof v === 'boolean' ? (v ? I18n.t('credits_yes') : I18n.t('credits_no')) : '—';
+          const fmtLimit = v => v !== null && v !== undefined ? fmt(v) : I18n.t('credits_unlimited');
+          const fmtReset = v => v ?? I18n.t('credits_never');
 
           const rows = [
-            ['Label',              d.label ?? '—',                         false],
-            ['Limit',              d.limit !== null ? fmt(d.limit) : 'Unlimited', false],
-            ['Limit remaining',    d.limit_remaining !== null ? fmt(d.limit_remaining) : 'Unlimited', true],
-            ['Limit reset',        d.limit_reset ?? 'Never',               false],
-            ['Usage (all time)',   fmt(d.usage),                           false],
-            ['Usage (today)',      fmt(d.usage_daily),                     false],
-            ['Usage (this week)',  fmt(d.usage_weekly),                    false],
-            ['Usage (this month)', fmt(d.usage_monthly),                   false],
-            ['BYOK usage (all time)',   fmt(d.byok_usage),                 false],
-            ['BYOK usage (today)',      fmt(d.byok_usage_daily),           false],
-            ['BYOK usage (this week)',  fmt(d.byok_usage_weekly),          false],
-            ['BYOK usage (this month)', fmt(d.byok_usage_monthly),         false],
-            ['Free tier',          bool(d.is_free_tier),                   false],
-            ['BYOK counts toward limit', bool(d.include_byok_in_limit),   false],
+            [I18n.t('credits_row_label'),       d.label ?? '—',                false],
+            [I18n.t('credits_row_limit'),        fmtLimit(d.limit),             false],
+            [I18n.t('credits_row_limit_remaining'), fmtLimit(d.limit_remaining), true],
+            [I18n.t('credits_row_limit_reset'),  fmtReset(d.limit_reset),       false],
+            [I18n.t('credits_row_usage'),        fmt(d.usage),                  false],
+            [I18n.t('credits_row_usage_today'),  fmt(d.usage_daily),            false],
+            [I18n.t('credits_row_usage_week'),   fmt(d.usage_weekly),           false],
+            [I18n.t('credits_row_usage_month'),  fmt(d.usage_monthly),          false],
+            [I18n.t('credits_row_byok_usage'),   fmt(d.byok_usage),             false],
+            [I18n.t('credits_row_byok_today'),   fmt(d.byok_usage_daily),       false],
+            [I18n.t('credits_row_byok_week'),    fmt(d.byok_usage_weekly),      false],
+            [I18n.t('credits_row_byok_month'),   fmt(d.byok_usage_monthly),     false],
+            [I18n.t('credits_row_free_tier'),    bool(d.is_free_tier),          false],
+            [I18n.t('credits_row_byok_limit'),   bool(d.include_byok_in_limit), false],
           ];
 
           content.innerHTML = rows.map(([label, value, large]) => `

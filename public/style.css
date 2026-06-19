@@ -481,6 +481,43 @@ textarea { resize: vertical; line-height: 1.55; }
   min-width: 160px;
 }
 
+/* ─── Language toggle (sidebar) ──────────────────────── */
+
+.sidebar #lang-toggle {
+  padding: 12px 16px;
+  border-top: 1px solid #222;
+  margin-top: auto;
+}
+
+.lang-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.sidebar .lang-toggle button {
+  background: none;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--sidebar-fg);
+  transition: background .12s, color .12s, border-color .12s;
+  font-family: inherit;
+}
+
+.sidebar .lang-toggle button:hover {
+  color: #fff;
+  border-color: rgba(255,255,255,.4);
+}
+
+.sidebar .lang-toggle button.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
 /* ─── Responsive ─────────────────────────────────── */
 
 @media (max-width: 860px) {
@@ -488,6 +525,7 @@ textarea { resize: vertical; line-height: 1.55; }
   .logo { display: none; }
   .tab { padding: 10px; justify-content: center; }
   .tab svg { opacity: 1; }
+  .sidebar #lang-toggle { display: none; }
 }
 
 @media (max-width: 640px) {

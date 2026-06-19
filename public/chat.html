@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chat AI</title>
+  <title data-i18n="page_title_chat">Chat AI</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="i18n.js"></script>
   <style>
     /* Chat-specific styles */
 
@@ -223,115 +224,6 @@
       font-size: 11px;
       color: var(--text-hint);
     }
-
-    /* ─── Sidebar overrides (chat list) ────────────────────────────────────── */
-
-    .sidebar { overflow: hidden; }
-
-    .sidebar-top {
-      flex-shrink: 0;
-      border-bottom: 1px solid #1d1d24;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 0 6px 8px;
-    }
-    .sidebar-top .logo {
-      padding: 16px 10px 6px;
-      border-bottom: none;
-    }
-
-    .btn-new-chat {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-      padding: 8px 10px;
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.1);
-      border-radius: var(--radius-sm);
-      color: var(--sidebar-fg);
-      font: inherit;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background .12s, color .12s;
-      text-align: left;
-    }
-    .btn-new-chat:hover { background: rgba(255,255,255,.13); color: #fff; }
-    .btn-new-chat svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-    .chat-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-height: 0;
-    }
-
-    .chat-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 8px 10px;
-      border-radius: var(--radius-sm);
-      background: transparent;
-      color: var(--sidebar-fg);
-      font: inherit;
-      font-size: 13px;
-      cursor: pointer;
-      text-align: left;
-      border: none;
-      width: 100%;
-      overflow: hidden;
-      transition: background .12s, color .12s;
-    }
-    .chat-item:hover  { background: var(--sidebar-hover-bg); color: var(--sidebar-active-fg); }
-    .chat-item.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-fg); }
-
-    .chat-item-title {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      min-width: 0;
-    }
-
-    .chat-item-del {
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      padding: 0;
-      background: transparent;
-      border: none;
-      border-radius: 3px;
-      color: var(--sidebar-fg);
-      cursor: pointer;
-      opacity: 0;
-      transition: opacity .12s, background .12s;
-    }
-    .chat-item:hover .chat-item-del { opacity: .55; }
-    .chat-item-del:hover { opacity: 1 !important; background: rgba(255,255,255,.15); color: #fff; }
-    .chat-item-del svg { width: 11px; height: 11px; }
-
-    .sidebar-bottom {
-      flex-shrink: 0;
-      border-top: 1px solid #1d1d24;
-      padding: 6px;
-    }
-
-    @media (max-width: 860px) {
-      .sidebar-top { padding: 0 4px 6px; }
-      .sidebar-top .logo { display: none; }
-      .btn-new-chat { padding: 10px; justify-content: center; }
-      .btn-new-chat span { display: none; }
-      .btn-new-chat svg { width: 16px; height: 16px; }
-      .chat-list { display: none; }
-    }
   </style>
 </head>
 <body>
@@ -339,26 +231,24 @@
 
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="sidebar-top">
-      <div class="logo">Chat AI</div>
-      <button class="btn-new-chat" id="btn-new-chat">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M10 4v12M4 10h12"/>
+    <div class="logo" data-i18n="logo_chat_app">Chat AI</div>
+    <nav>
+      <button class="tab active" data-tab="chat">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M2 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6l-4 3V4z"/>
         </svg>
-        <span>New chat</span>
+        <span data-i18n="chat_tab_chat">Chat</span>
       </button>
-    </div>
-    <div class="chat-list" id="chat-list"></div>
-    <div class="sidebar-bottom">
       <a class="tab" href="image.html" id="link-images">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
           <rect x="2" y="4" width="16" height="12" rx="2"/>
           <circle cx="7" cy="9" r="1.5"/>
           <path d="M2 14l4-4 3 3 3-3 6 6"/>
         </svg>
-        Images
+        <span data-i18n="chat_tab_images">Images</span>
       </a>
-    </div>
+    </nav>
+    <div id="lang-toggle"></div>
   </aside>
 
   <!-- Main -->
@@ -370,83 +260,91 @@
         <form id="settings-form" onsubmit="return false">
 
           <div class="field">
-            <label for="chat-model">Model</label>
+            <label for="chat-model" data-i18n="chat_model_label">Model</label>
             <select id="chat-model" disabled>
-              <option>Loading models…</option>
+              <option data-i18n="loading_models">Loading models…</option>
             </select>
           </div>
 
           <details class="advanced-toggle" open>
-            <summary>System prompt</summary>
+            <summary data-i18n="chat_system_summary">System prompt</summary>
             <div class="advanced-body">
               <div class="field">
-                <textarea id="chat-system" rows="5" placeholder="You are a helpful assistant."></textarea>
+                <textarea id="chat-system" rows="5"
+                  data-i18n-placeholder="chat_system_placeholder"
+                  placeholder="You are a helpful assistant."></textarea>
               </div>
             </div>
           </details>
 
           <details class="advanced-toggle">
-            <summary>Parameters</summary>
+            <summary data-i18n="chat_params_summary">Parameters</summary>
             <div class="advanced-body">
 
               <div class="field">
-                <label for="chat-temperature">Temperature</label>
+                <label for="chat-temperature" data-i18n="chat_temperature_label">Temperature</label>
                 <div class="range-row">
                   <input type="range" id="chat-temperature" min="0" max="2" step="0.01" value="1" />
                   <span class="range-val" id="chat-temperature-val">1.00</span>
                 </div>
-                <span class="field-hint">Randomness — 0 is deterministic, 2 is most creative.</span>
+                <span class="field-hint" data-i18n="chat_temperature_hint">Randomness — 0 is deterministic, 2 is most creative.</span>
               </div>
 
               <div class="field">
-                <label for="chat-top-p">Top P</label>
+                <label for="chat-top-p" data-i18n="chat_top_p_label">Top P</label>
                 <div class="range-row">
                   <input type="range" id="chat-top-p" min="0" max="1" step="0.01" value="1" />
                   <span class="range-val" id="chat-top-p-val">1.00</span>
                 </div>
-                <span class="field-hint">Nucleus sampling — restrict to top P probability mass.</span>
+                <span class="field-hint" data-i18n="chat_top_p_hint">Nucleus sampling — restrict to top P probability mass.</span>
               </div>
 
               <div class="field">
-                <label for="chat-freq-penalty">Frequency penalty</label>
+                <label for="chat-freq-penalty" data-i18n="chat_freq_label">Frequency penalty</label>
                 <div class="range-row">
                   <input type="range" id="chat-freq-penalty" min="-2" max="2" step="0.01" value="0" />
                   <span class="range-val" id="chat-freq-penalty-val">0.00</span>
                 </div>
-                <span class="field-hint">Penalise already-frequent tokens to reduce repetition.</span>
+                <span class="field-hint" data-i18n="chat_freq_hint">Penalise already-frequent tokens to reduce repetition.</span>
               </div>
 
               <div class="field">
-                <label for="chat-pres-penalty">Presence penalty</label>
+                <label for="chat-pres-penalty" data-i18n="chat_pres_label">Presence penalty</label>
                 <div class="range-row">
                   <input type="range" id="chat-pres-penalty" min="-2" max="2" step="0.01" value="0" />
                   <span class="range-val" id="chat-pres-penalty-val">0.00</span>
                 </div>
-                <span class="field-hint">Encourage new topics by penalising already-mentioned tokens.</span>
+                <span class="field-hint" data-i18n="chat_pres_hint">Encourage new topics by penalising already-mentioned tokens.</span>
               </div>
 
               <div class="field">
-                <label for="chat-max-tokens">Max tokens</label>
-                <input type="number" id="chat-max-tokens" min="1" max="131072" placeholder="Model default" />
-                <span class="field-hint">Maximum tokens to generate. Leave empty for model default.</span>
+                <label for="chat-max-tokens" data-i18n="chat_max_tokens_label">Max tokens</label>
+                <input type="number" id="chat-max-tokens" min="1" max="131072"
+                  data-i18n-placeholder="chat_max_tokens_placeholder"
+                  placeholder="Model default" />
+                <span class="field-hint" data-i18n="chat_max_tokens_hint">Maximum tokens to generate. Leave empty for model default.</span>
               </div>
 
               <div class="field">
-                <label for="chat-top-k">Top K</label>
-                <input type="number" id="chat-top-k" min="0" placeholder="Disabled" />
-                <span class="field-hint">Limit sampling pool to top K tokens. Empty = disabled.</span>
+                <label for="chat-top-k" data-i18n="chat_top_k_label">Top K</label>
+                <input type="number" id="chat-top-k" min="0"
+                  data-i18n-placeholder="chat_top_k_placeholder"
+                  placeholder="Disabled" />
+                <span class="field-hint" data-i18n="chat_top_k_hint">Limit sampling pool to top K tokens. Empty = disabled.</span>
               </div>
 
               <div class="field">
-                <label for="chat-seed">Seed</label>
-                <input type="number" id="chat-seed" min="0" placeholder="Random" />
-                <span class="field-hint">Fixed seed for reproducible outputs.</span>
+                <label for="chat-seed" data-i18n="chat_seed_label">Seed</label>
+                <input type="number" id="chat-seed" min="0"
+                  data-i18n-placeholder="chat_seed_placeholder"
+                  placeholder="Random" />
+                <span class="field-hint" data-i18n="chat_seed_hint">Fixed seed for reproducible outputs.</span>
               </div>
 
             </div>
           </details>
 
-          <button type="button" class="btn-secondary" id="btn-clear">Clear conversation</button>
+          <button type="button" class="btn-secondary" id="btn-clear" data-i18n="chat_clear">Clear conversation</button>
 
         </form>
       </div>
@@ -455,21 +353,22 @@
       <div class="chat-col">
 
         <div class="messages" id="messages">
-          <div class="empty-state">Start a conversation by typing a message below.</div>
+          <div class="empty-state" data-i18n="chat_empty_state">Start a conversation by typing a message below.</div>
         </div>
 
         <div class="chat-input-area">
           <div class="chat-input-row">
             <textarea
               id="chat-input"
+              data-i18n-placeholder="chat_input_placeholder"
               placeholder="Message…"
               rows="1"
               autocomplete="off"
               spellcheck="true"
             ></textarea>
-            <button type="button" class="btn-primary" id="btn-send">Send</button>
+            <button type="button" class="btn-primary" id="btn-send" data-i18n="chat_send">Send</button>
           </div>
-          <span class="chat-input-hint">⌘↵ or Ctrl↵ to send</span>
+          <span class="chat-input-hint" data-i18n="chat_input_hint">⌘↵ or Ctrl↵ to send</span>
         </div>
 
       </div>
@@ -480,7 +379,6 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
-<script src="privacy-modal.js"></script>
 <script src="chat.js"></script>
 </body>
 </html>

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OpenRouter Chat — Enter API Key</title>
+  <title data-i18n="page_title_key">OpenRouter Chat — Enter API Key</title>
+  <script src="i18n.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -44,8 +45,28 @@
       font-size: 15px;
       font-weight: 700;
       color: var(--text);
-      margin-bottom: 28px;
+      margin-bottom: 12px;
     }
+
+    #lang-toggle { margin-bottom: 20px; }
+
+    .lang-toggle { display: flex; gap: 4px; }
+
+    .lang-toggle button {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: background .12s, color .12s, border-color .12s;
+      font-family: inherit;
+    }
+
+    .lang-toggle button:hover { border-color: var(--primary); color: var(--primary); }
+    .lang-toggle button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
     h1 {
       font-size: 20px;
@@ -69,9 +90,7 @@
       margin-bottom: 6px;
     }
 
-    .input-wrap {
-      position: relative;
-    }
+    .input-wrap { position: relative; }
 
     input[type="password"],
     input[type="text"] {
@@ -111,14 +130,10 @@
       min-height: 16px;
     }
 
-    .btn-row {
-      display: flex;
-      gap: 10px;
+    button[type="submit"] {
+      display: block;
+      width: 100%;
       margin-top: 20px;
-    }
-
-    .btn-row button {
-      flex: 1;
       padding: 10px;
       background: var(--primary);
       color: #fff;
@@ -131,39 +146,32 @@
       transition: background .15s;
     }
 
-    .btn-row button:hover { background: var(--primary-hover); }
-
-    .btn-row button.secondary {
-      background: var(--surface);
-      color: var(--primary);
-      border: 1px solid var(--primary);
-    }
-
-    .btn-row button.secondary:hover {
-      background: #f0edff;
-    }
+    button[type="submit"]:hover { background: var(--primary-hover); }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">OpenRouter Chat</div>
-    <h1>Enter your API key</h1>
-    <p class="subtitle">
+    <div class="logo" data-i18n="logo_chat">OpenRouter Chat</div>
+    <div id="lang-toggle"></div>
+    <h1 data-i18n="key_heading">Enter your API key</h1>
+    <p class="subtitle" data-i18n="key_subtitle">
       Your key is used to authenticate requests to the OpenRouter API.
       It is appended to the URL and never stored on the server.
     </p>
 
     <form id="key-form" novalidate>
-      <label for="api-key">Magnific API Key</label>
+      <label for="api-key" data-i18n="key_label">Magnific API Key</label>
       <div class="input-wrap">
         <input
           type="password"
           id="api-key"
+          data-i18n-placeholder="key_placeholder"
           placeholder="sk-or-…"
           autocomplete="off"
           spellcheck="false"
         />
-        <button type="button" class="toggle-vis" id="toggle-vis" aria-label="Show/hide key">
+        <button type="button" class="toggle-vis" id="toggle-vis"
+          data-i18n-aria-label="key_toggle_aria" aria-label="Show/hide key">
           <svg id="icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
           </svg>
@@ -174,10 +182,7 @@
         </button>
       </div>
       <p class="error" id="error-msg" aria-live="polite"></p>
-      <div class="btn-row">
-        <button type="submit" data-dest="image">Images</button>
-        <button type="submit" data-dest="chat" class="secondary">Chat</button>
-      </div>
+      <button type="submit" data-i18n="key_submit">Open app</button>
     </form>
   </div>
 
@@ -196,22 +201,16 @@
       iconHide.style.display = isPassword ? '' : 'none';
     });
 
-    let chosenDest = 'image';
-    document.querySelectorAll('.btn-row button').forEach(btn => {
-      btn.addEventListener('click', () => { chosenDest = btn.dataset.dest; });
-    });
-
     form.addEventListener('submit', e => {
       e.preventDefault();
       const key = input.value.trim();
       if (!key) {
-        errorMsg.textContent = 'Please enter your API key.';
+        errorMsg.textContent = I18n.t('key_error_empty');
         input.focus();
         return;
       }
       errorMsg.textContent = '';
-      const dest = chosenDest === 'chat' ? 'chat.html' : 'image.html';
-      window.location.href = `/${dest}?key=${encodeURIComponent(key)}`;
+      window.location.href = I18n.addLangParam(`/images/image.html?key=${encodeURIComponent(key)}`);
     });
 
     input.addEventListener('input', () => {

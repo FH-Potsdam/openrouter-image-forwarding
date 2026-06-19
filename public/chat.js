@@ -13,9 +13,9 @@ if (!API_KEY) {
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#7c5af5" stroke-width="1.5">
         <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
       </svg>
-      <h2 style="font-size:18px;font-weight:600;margin:0">API key required</h2>
+      <h2 style="font-size:18px;font-weight:600;margin:0">${I18n.t('chat_no_key_title')}</h2>
       <p style="font-size:14px;max-width:380px;line-height:1.7;margin:0">
-        Pass your OpenRouter key as a URL parameter:<br>
+        ${I18n.t('chat_no_key_body')}<br>
         <code style="background:#f4f4f8;padding:3px 8px;border-radius:4px;font-size:12px">?key=sk-or-…</code>
       </p>
     </div>`;
@@ -26,9 +26,9 @@ function apiHeaders() {
   return { 'Content-Type': 'application/json', 'x-api-key': API_KEY };
 }
 
-// Preserve ?key= when navigating to the Images page
+// Preserve ?key= and ?lang= when navigating to the Images page
 const imgLink = document.getElementById('link-images');
-if (imgLink) imgLink.href = `image.html?key=${encodeURIComponent(API_KEY)}`;
+if (imgLink) imgLink.href = I18n.addLangParam(`image.html?key=${encodeURIComponent(API_KEY)}`);
 
 // ─── DOM refs ───────────────────────────────────────────────────────────────
 
@@ -37,8 +37,6 @@ const messagesEl  = document.getElementById('messages');
 const chatInput   = document.getElementById('chat-input');
 const sendBtn     = document.getElementById('btn-send');
 const clearBtn    = document.getElementById('btn-clear');
-const newChatBtn  = document.getElementById('btn-new-chat');
-const chatListEl  = document.getElementById('chat-list');
 
 // ─── Model loading ──────────────────────────────────────────────────────────
 
@@ -108,156 +106,17 @@ for (const [id, valId] of [
   });
 }
 
+// ─── Conversation state ──────────────────────────────────────────────────────
+
+let history   = [];   // { role, content }[]
+let streaming = false;
+
 // ─── Markdown rendering ──────────────────────────────────────────────────────
 
 marked.use({ breaks: true, gfm: true });
 
 function renderMarkdown(text) {
   return DOMPurify.sanitize(marked.parse(text));
-}
-
-// ─── Chat storage ────────────────────────────────────────────────────────────
-
-const STORAGE_KEY = 'chatai_chats';
-
-function genId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-}
-
-function makeChat() {
-  return { id: genId(), title: 'New chat', history: [], createdAt: Date.now() };
-}
-
-function loadChatsFromStorage() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []; } catch { return []; }
-}
-
-function saveChatsToStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
-}
-
-let chats         = loadChatsFromStorage();
-let currentChatId = null;
-let history       = [];
-let streaming     = false;
-
-// ─── Sidebar rendering ───────────────────────────────────────────────────────
-
-function renderSidebar() {
-  chatListEl.innerHTML = '';
-  const sorted = [...chats].sort((a, b) => b.createdAt - a.createdAt);
-  for (const chat of sorted) {
-    const item = document.createElement('button');
-    item.type = 'button';
-    item.className = 'chat-item' + (chat.id === currentChatId ? ' active' : '');
-
-    const title = document.createElement('span');
-    title.className = 'chat-item-title';
-    title.textContent = chat.title;
-
-    const del = document.createElement('button');
-    del.type = 'button';
-    del.className = 'chat-item-del';
-    del.title = 'Delete chat';
-    del.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M3 3l10 10M13 3L3 13"/>
-    </svg>`;
-    del.addEventListener('click', e => { e.stopPropagation(); deleteChat(chat.id); });
-
-    item.appendChild(title);
-    item.appendChild(del);
-    item.addEventListener('click', () => switchToChat(chat.id));
-    chatListEl.appendChild(item);
-  }
-}
-
-// ─── Chat management ─────────────────────────────────────────────────────────
-
-function flushCurrentHistory() {
-  const chat = chats.find(c => c.id === currentChatId);
-  if (chat) chat.history = [...history];
-}
-
-function renderHistoryIntoMessages(chatHistory) {
-  messagesEl.innerHTML = '';
-  if (chatHistory.length === 0) {
-    messagesEl.innerHTML = '<div class="empty-state">Start a conversation by typing a message below.</div>';
-    return;
-  }
-  for (const msg of chatHistory) {
-    const wrap   = document.createElement('div');
-    const bubble = document.createElement('div');
-    wrap.className   = `message ${msg.role}`;
-    bubble.className = 'message-bubble';
-    if (msg.role === 'user') {
-      bubble.textContent = msg.content;
-    } else {
-      bubble.innerHTML = renderMarkdown(msg.content);
-    }
-    wrap.appendChild(bubble);
-    messagesEl.appendChild(wrap);
-  }
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-function switchToChat(id) {
-  if (id === currentChatId) return;
-  flushCurrentHistory();
-  saveChatsToStorage();
-  const chat = chats.find(c => c.id === id);
-  if (!chat) return;
-  currentChatId = chat.id;
-  history = [...chat.history];
-  renderHistoryIntoMessages(chat.history);
-  renderSidebar();
-  chatInput.focus();
-}
-
-function startNewChat() {
-  flushCurrentHistory();
-  const chat = makeChat();
-  chats.unshift(chat);
-  saveChatsToStorage();
-  currentChatId = chat.id;
-  history = [];
-  renderHistoryIntoMessages([]);
-  renderSidebar();
-  chatInput.focus();
-}
-
-function deleteChat(id) {
-  const idx = chats.findIndex(c => c.id === id);
-  if (idx === -1) return;
-  chats.splice(idx, 1);
-  saveChatsToStorage();
-  if (id !== currentChatId) {
-    renderSidebar();
-    return;
-  }
-  if (chats.length > 0) {
-    const next = [...chats].sort((a, b) => b.createdAt - a.createdAt)[0];
-    currentChatId = next.id;
-    history = [...next.history];
-    renderHistoryIntoMessages(next.history);
-    renderSidebar();
-  } else {
-    startNewChat();
-  }
-}
-
-// ─── Init ────────────────────────────────────────────────────────────────────
-
-{
-  const sorted = [...chats].sort((a, b) => b.createdAt - a.createdAt);
-  if (sorted.length > 0) {
-    const first = sorted[0];
-    currentChatId = first.id;
-    history = [...first.history];
-    renderHistoryIntoMessages(first.history);
-    renderSidebar();
-  } else {
-    startNewChat();
-  }
 }
 
 // ─── Message rendering ───────────────────────────────────────────────────────
@@ -346,10 +205,10 @@ function extractError(status, body) {
     ?? (typeof body?.error === 'string' ? body.error : null)
     ?? body?.message
     ?? null;
-  if (status === 401) return 'Invalid API key — check the ?key= URL parameter.';
-  if (status === 402) return 'Insufficient credits on your OpenRouter account.';
-  if (status === 429) return 'Rate limit hit — wait a moment and try again.';
-  return msg ?? `Unexpected error (HTTP ${status}).`;
+  if (status === 401) return I18n.t('chat_err_401');
+  if (status === 402) return I18n.t('chat_err_402');
+  if (status === 429) return I18n.t('chat_err_429');
+  return msg ?? `${I18n.t('err_unexpected_prefix')}${status}).`;
 }
 
 async function consumeSSE(response, onChunk) {
@@ -387,15 +246,6 @@ async function sendMessage() {
   chatInput.value        = '';
   chatInput.style.height = 'auto';
 
-  // Auto-title the chat from its first user message
-  if (history.length === 0) {
-    const chat = chats.find(c => c.id === currentChatId);
-    if (chat && chat.title === 'New chat') {
-      chat.title = content.length > 30 ? content.slice(0, 30) + '…' : content;
-      renderSidebar();
-    }
-  }
-
   createBubble('user').textContent = content;
   showTyping();
 
@@ -425,12 +275,6 @@ async function sendMessage() {
     history.push({ role: 'user',      content });
     history.push({ role: 'assistant', content: assistantContent });
 
-    const chat = chats.find(c => c.id === currentChatId);
-    if (chat) {
-      chat.history = [...history];
-      saveChatsToStorage();
-    }
-
   } catch (err) {
     removeTyping();
     showChatError(err.message);
@@ -443,7 +287,6 @@ async function sendMessage() {
 
 // ─── Event listeners ──────────────────────────────────────────────────────────
 
-newChatBtn.addEventListener('click', startNewChat);
 sendBtn.addEventListener('click', sendMessage);
 
 chatInput.addEventListener('keydown', e => {
@@ -460,13 +303,6 @@ chatInput.addEventListener('input', function () {
 
 clearBtn.addEventListener('click', () => {
   history = [];
-  const chat = chats.find(c => c.id === currentChatId);
-  if (chat) {
-    chat.history = [];
-    chat.title   = 'New chat';
-    saveChatsToStorage();
-    renderSidebar();
-  }
-  messagesEl.innerHTML = '<div class="empty-state">Start a conversation by typing a message below.</div>';
+  messagesEl.innerHTML = `<div class="empty-state">${I18n.t('chat_empty_state')}</div>`;
   chatInput.focus();
 });

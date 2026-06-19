@@ -12,9 +12,9 @@ if (!API_KEY) {
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#7c5af5" stroke-width="1.5">
         <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
       </svg>
-      <h2 style="font-size:18px;font-weight:600">API key required</h2>
+      <h2 style="font-size:18px;font-weight:600">${I18n.t('app_no_key_title')}</h2>
       <p style="font-size:14px;max-width:360px;line-height:1.6">
-        Open this app with your OpenRouter API key as a URL parameter:<br><br>
+        ${I18n.t('app_no_key_body')}<br><br>
         <code style="background:#f4f4f8;padding:4px 8px;border-radius:4px;font-size:13px">?key=YOUR_OPENROUTER_API_KEY</code>
       </p>
     </div>`;
@@ -42,12 +42,12 @@ function setSelectedRef(url, btn) {
   if (activeRefCardBtn === btn) { clearSelectedRef(); return; }
   if (activeRefCardBtn) {
     activeRefCardBtn.classList.remove('active');
-    activeRefCardBtn.textContent = 'Use as reference';
+    activeRefCardBtn.textContent = I18n.t('app_use_as_ref');
   }
   selectedRef      = url;
   activeRefCardBtn = btn;
   btn.classList.add('active');
-  btn.textContent = 'Selected ✓';
+  btn.textContent = I18n.t('app_selected');
   for (const prefix of ['gen', 'i2p']) {
     const thumb    = document.getElementById(`${prefix}-last-thumb`);
     const removeBtn = document.getElementById(`btn-use-last-${prefix}`);
@@ -60,7 +60,7 @@ function setSelectedRef(url, btn) {
 function clearSelectedRef() {
   if (activeRefCardBtn) {
     activeRefCardBtn.classList.remove('active');
-    activeRefCardBtn.textContent = 'Use as reference';
+    activeRefCardBtn.textContent = I18n.t('app_use_as_ref');
   }
   selectedRef      = null;
   activeRefCardBtn = null;
@@ -80,6 +80,7 @@ function activateTab(name) {
   const next = new URLSearchParams(location.search);
   next.set('key', API_KEY);
   next.set('tab', name);
+  next.set('lang', I18n.LANG);
   history.replaceState(null, '', `?${next}`);
 }
 
@@ -235,8 +236,8 @@ document.getElementById('btn-use-last-i2p').addEventListener('click', clearSelec
 
 // ─── Result helpers ────────────────────────────────────────────────────────────
 
-function setLoading(el, msg = 'Working…') {
-  el.innerHTML = `<div class="loading"><div class="spinner"></div><p>${msg}</p></div>`;
+function setLoading(el, msg) {
+  el.innerHTML = `<div class="loading"><div class="spinner"></div><p>${msg ?? I18n.t('app_working')}</p></div>`;
 }
 
 function setError(el, msg) {
@@ -249,17 +250,17 @@ function extractError(status, body) {
     (typeof body?.error === 'string' ? body.error : null) ||
     body?.message || null;
   switch (status) {
-    case 401: return 'Invalid or missing API key — check the ?key= parameter in your URL.';
-    case 402: return 'Insufficient credits on your OpenRouter account. Add credits at openrouter.ai.';
-    case 403: return msg || 'Access denied. Your key may lack permission for this model.';
+    case 401: return I18n.t('err_401');
+    case 402: return I18n.t('err_402');
+    case 403: return msg || I18n.t('err_403');
     case 400:
-    case 422: return msg ? `Bad request: ${msg}` : 'The request was rejected. Check your inputs.';
-    case 429: return 'Rate limit reached. Please wait a moment and try again.';
-    case 500: return msg || 'OpenRouter internal error. Try again shortly.';
+    case 422: return msg ? `${I18n.t('err_bad_request_prefix')}${msg}` : I18n.t('err_bad_request_default');
+    case 429: return I18n.t('err_429');
+    case 500: return msg || I18n.t('err_500');
     case 502:
     case 503:
-    case 504: return 'OpenRouter is temporarily unavailable. Try again later.';
-    default:  return msg || `Unexpected error (HTTP ${status}).`;
+    case 504: return I18n.t('err_unavailable');
+    default:  return msg || `${I18n.t('err_unexpected_prefix')}${status}).`;
   }
 }
 
@@ -268,11 +269,11 @@ function escHtml(str) {
 }
 
 // Prepend a loading placeholder; returns the element so the caller can remove it.
-function prependLoading(resultEl, msg = 'Working…') {
+function prependLoading(resultEl, msg) {
   resultEl.querySelector('.empty-state')?.remove();
   const el = document.createElement('div');
   el.className = 'loading';
-  el.innerHTML = `<div class="spinner"></div><p>${msg}</p>`;
+  el.innerHTML = `<div class="spinner"></div><p>${msg ?? I18n.t('app_working')}</p>`;
   resultEl.prepend(el);
   return el;
 }
@@ -286,7 +287,6 @@ function prependError(resultEl, msg) {
 }
 
 // Add an image result card at the top of resultEl (newest first).
-// Shows prompt, model, aspect ratio as meta tags and a "Use as reference" button.
 function addImageCard(resultEl, { dataUrl, prompt, model, aspect, referenceUrl }) {
   resultEl.querySelector('.empty-state')?.remove();
 
@@ -294,7 +294,7 @@ function addImageCard(resultEl, { dataUrl, prompt, model, aspect, referenceUrl }
   const tags = [
     `<span class="meta-tag">${escHtml(model)}</span>`,
     ...(aspect      ? [`<span class="meta-tag">${escHtml(aspect)}</span>`]  : []),
-    ...(referenceUrl ? [`<span class="meta-tag meta-tag--ref">ref used</span>`] : []),
+    ...(referenceUrl ? [`<span class="meta-tag meta-tag--ref">${I18n.t('app_ref_used')}</span>`] : []),
   ].join('');
 
   const card = document.createElement('div');
@@ -306,8 +306,8 @@ function addImageCard(resultEl, { dataUrl, prompt, model, aspect, referenceUrl }
       <div class="meta-params">${tags}</div>
     </div>
     <div class="image-card-footer">
-      <button type="button" class="btn-secondary btn-use-ref">Use as reference</button>
-      <a href="${dataUrl}" download="generated.${ext}" class="btn-secondary">Download</a>
+      <button type="button" class="btn-secondary btn-use-ref">${I18n.t('app_use_as_ref')}</button>
+      <a href="${dataUrl}" download="generated.${ext}" class="btn-secondary">${I18n.t('app_download')}</a>
     </div>`;
 
   card.querySelector('.btn-use-ref').addEventListener('click', function () {
@@ -327,18 +327,18 @@ function showTextCard(el, { onUseAsPrompt } = {}) {
 
   const copyBtn = document.createElement('button');
   copyBtn.className = 'btn-secondary';
-  copyBtn.textContent = 'Copy';
+  copyBtn.textContent = I18n.t('app_copy');
   copyBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(p.textContent);
-    copyBtn.textContent = 'Copied!';
-    setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
+    copyBtn.textContent = I18n.t('app_copied');
+    setTimeout(() => { copyBtn.textContent = I18n.t('app_copy'); }, 2000);
   });
   footer.appendChild(copyBtn);
 
   if (onUseAsPrompt) {
     const useBtn = document.createElement('button');
     useBtn.className = 'btn-secondary';
-    useBtn.textContent = 'Use as prompt →';
+    useBtn.textContent = I18n.t('app_use_as_prompt');
     useBtn.addEventListener('click', () => onUseAsPrompt(p.textContent));
     footer.appendChild(useBtn);
   }
@@ -395,7 +395,7 @@ document.getElementById('form-generate').addEventListener('submit', async e => {
   if (refFile)          body.reference_image = await fileToDataURL(refFile).then(url => resizeImageClientSide(url));
   else if (selectedRef) body.reference_image = await resizeImageClientSide(selectedRef);
 
-  const loadingEl = prependLoading(resultEl, 'Generating image…');
+  const loadingEl = prependLoading(resultEl, I18n.t('app_generating'));
   btn.disabled = true;
 
   try {
@@ -407,7 +407,7 @@ document.getElementById('form-generate').addEventListener('submit', async e => {
 
     const msg = data.choices?.[0]?.message;
     const imgUrl = msg?.images?.[0]?.image_url?.url;
-    if (!imgUrl) throw new Error('No image returned. The selected model may not support image generation.');
+    if (!imgUrl) throw new Error(I18n.t('app_no_image'));
 
     loadingEl.remove();
     addImageCard(resultEl, { dataUrl: imgUrl, prompt, model, aspect, referenceUrl: body.reference_image });
@@ -431,13 +431,13 @@ document.getElementById('form-i2p').addEventListener('submit', async e => {
   const model = document.getElementById('i2p-model').value;
 
   if (!file && !urlIn && !selectedRef) {
-    setError(resultEl, 'Please upload an image, paste a URL, or select a reference image.');
+    setError(resultEl, I18n.t('app_no_ref'));
     return;
   }
 
   const image = file ? await fileToDataURL(file) : (urlIn || selectedRef);
 
-  setLoading(resultEl, 'Analysing image…');
+  setLoading(resultEl, I18n.t('app_analysing'));
   btn.disabled = true;
 
   try {
@@ -484,7 +484,7 @@ document.getElementById('form-ip').addEventListener('submit', async e => {
   const prompt = document.getElementById('ip-prompt').value.trim();
   const model  = document.getElementById('ip-model').value;
 
-  setLoading(resultEl, 'Improving prompt…');
+  setLoading(resultEl, I18n.t('app_improving'));
   btn.disabled = true;
 
   try {
