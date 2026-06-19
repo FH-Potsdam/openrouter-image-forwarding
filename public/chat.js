@@ -26,10 +26,6 @@ function apiHeaders() {
   return { 'Content-Type': 'application/json', 'x-api-key': API_KEY };
 }
 
-// Preserve ?key= and ?lang= when navigating to the Images page
-const imgLink = document.getElementById('link-images');
-if (imgLink) imgLink.href = I18n.addLangParam(`image.html?key=${encodeURIComponent(API_KEY)}`);
-
 // ─── DOM refs ───────────────────────────────────────────────────────────────
 
 const modelSelect = document.getElementById('chat-model');
