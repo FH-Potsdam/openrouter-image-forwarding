@@ -7,9 +7,13 @@ A lightweight Node.js proxy server and browser-based chat UI that connects to th
 - **Model selector** — choose from every model available on your OpenRouter account; the list is loaded dynamically on startup
 - **Streaming responses** — assistant replies stream token-by-token via Server-Sent Events
 - **Markdown rendering** — assistant messages are rendered as formatted HTML (headings, lists, code blocks, tables, blockquotes) via [marked](https://marked.js.org/) with [DOMPurify](https://github.com/cure53/DOMPurify) sanitization
-- **System prompt** — optional, collapsible system prompt applied to every request in the session
+- **Structured system prompt** — Name, Role, Tonality, and Task fields compose into a structured markdown system prompt; Name is UI-only and never sent to the model
+- **Settings export/import** — save the system prompt fields and generation parameters to a JSON file (named after the Name field) and restore them later
+- **Parameter info boxes** — tap-to-toggle inline explanations for each generation parameter (temperature, top P, penalties, max tokens, top K, seed), usable on touch and desktop
+- **Speech output** — reads assistant responses aloud via the Web Speech API, with voice, rate, and pitch controls persisted in localStorage
 - **Multi-turn conversation** — full message history is maintained in the browser and sent on each request
-- **Image generation** — separate page for generating, describing, and improving prompts for images via OpenRouter image models
+- **Conversation download** — export the current conversation as plain text or JSON, and clear it from the chat header
+- **Image generation** — separate page for generating, describing, and improving prompts for images via OpenRouter image models, with a reference-image box supporting upload, pasted URL, or a reference picked from a previous result
 - **Error handling** — maps API error codes (invalid key, no credits, rate limits, etc.) to plain-language messages
 - **Key via URL** — no server-side secrets; each user supplies their own API key in the URL
 - **Privacy notice** — a data-protection modal is shown on every page load of the chat and image tools, informing users that nothing is persisted beyond the browser session
@@ -55,6 +59,10 @@ http://localhost:1515/chat.html?key=YOUR_KEY
 ```
 
 If no key is present the page replaces itself with an instruction screen. Assistant responses are rendered as formatted markdown (headings, lists, fenced code blocks with syntax-aware theming, tables, blockquotes).
+
+The system prompt is composed from four fields — **Name** (UI-only, shown in the chat but never sent to the model), **Role**, **Tonality**, and **Task** — merged into a structured markdown prompt sent with every request. These fields, along with the generation parameters, can be saved to and restored from a JSON file via the Export/Import buttons in settings.
+
+Assistant replies can be read aloud via the speech-output toggle in the chat header, with voice, rate, and pitch configurable in a dedicated settings section.
 
 ### `/image.html` — Image tools
 
