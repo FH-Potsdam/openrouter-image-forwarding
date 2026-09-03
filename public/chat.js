@@ -28,13 +28,17 @@ function apiHeaders() {
 
 // ─── DOM refs ───────────────────────────────────────────────────────────────
 
-const modelSelect = document.getElementById('chat-model');
-const messagesEl  = document.getElementById('messages');
-const chatInput   = document.getElementById('chat-input');
-const sendBtn     = document.getElementById('btn-send');
-const clearBtn    = document.getElementById('btn-clear');
-const newChatBtn  = document.getElementById('btn-new-chat');
-const chatListEl  = document.getElementById('chat-list');
+const modelSelect  = document.getElementById('chat-model');
+const messagesEl   = document.getElementById('messages');
+const chatInput    = document.getElementById('chat-input');
+const sendBtn      = document.getElementById('btn-send');
+const clearBtn     = document.getElementById('btn-clear');
+const newChatBtn   = document.getElementById('btn-new-chat');
+const chatListEl   = document.getElementById('chat-list');
+const downloadBtn  = document.getElementById('btn-download');
+const downloadMenu = document.getElementById('download-menu');
+const downloadTextBtn = document.getElementById('download-text');
+const downloadJsonBtn = document.getElementById('download-json');
 
 // ─── Model loading ──────────────────────────────────────────────────────────
 
@@ -167,6 +171,7 @@ function flushCurrentHistory() {
 }
 
 function renderHistoryIntoMessages(chatHistory) {
+  downloadBtn.disabled = chatHistory.length === 0;
   messagesEl.innerHTML = '';
   if (chatHistory.length === 0) {
     messagesEl.innerHTML = `<div class="empty-state">${I18n.t('chat_empty_state')}</div>`;
@@ -417,6 +422,7 @@ async function sendMessage() {
 
     history.push({ role: 'user',      content });
     history.push({ role: 'assistant', content: assistantContent });
+    downloadBtn.disabled = false;
 
     const chat = chats.find(c => c.id === currentChatId);
     if (chat) { chat.history = [...history]; saveChatsToStorage(); }
@@ -458,5 +464,133 @@ clearBtn.addEventListener('click', () => {
     renderSidebar();
   }
   messagesEl.innerHTML = `<div class="empty-state">${I18n.t('chat_empty_state')}</div>`;
+  downloadBtn.disabled = true;
   chatInput.focus();
+});
+
+// ─── Conversation export (text / JSON) ────────────────────────────────────────
+
+function currentSettings() {
+  const maxTokens = document.getElementById('chat-max-tokens').value.trim();
+  const topK      = document.getElementById('chat-top-k').value.trim();
+  const seed      = document.getElementById('chat-seed').value.trim();
+  return {
+    model:              modelSelect.value,
+    systemPrompt:       document.getElementById('chat-system').value.trim(),
+    temperature:        parseFloat(document.getElementById('chat-temperature').value),
+    top_p:              parseFloat(document.getElementById('chat-top-p').value),
+    frequency_penalty:  parseFloat(document.getElementById('chat-freq-penalty').value),
+    presence_penalty:   parseFloat(document.getElementById('chat-pres-penalty').value),
+    max_tokens:         maxTokens ? parseInt(maxTokens, 10) : null,
+    top_k:              topK ? parseInt(topK, 10) : null,
+    seed:               seed ? parseInt(seed, 10) : null,
+  };
+}
+
+function exportMessages(settings) {
+  const messages = [];
+  if (settings.systemPrompt) messages.push({ role: 'system', content: settings.systemPrompt });
+  messages.push(...history);
+  return messages;
+}
+
+function buildTextExport() {
+  const chat     = chats.find(c => c.id === currentChatId);
+  const settings = currentSettings();
+
+  const lines = [];
+  for (const msg of history) {
+    lines.push(`${msg.role === 'user' ? 'Human' : 'AI'}: ${msg.content}`);
+    lines.push('');
+  }
+  lines.push('---');
+  lines.push('Metadata');
+  lines.push(`Title: ${chat?.title ?? ''}`);
+  lines.push(`Date: ${new Date().toISOString()}`);
+  lines.push(`Model: ${settings.model}`);
+  lines.push(`System prompt: ${settings.systemPrompt || '(none)'}`);
+  lines.push(`Temperature: ${settings.temperature}`);
+  lines.push(`Top P: ${settings.top_p}`);
+  lines.push(`Frequency penalty: ${settings.frequency_penalty}`);
+  lines.push(`Presence penalty: ${settings.presence_penalty}`);
+  lines.push(`Max tokens: ${settings.max_tokens ?? '(model default)'}`);
+  lines.push(`Top K: ${settings.top_k ?? '(disabled)'}`);
+  lines.push(`Seed: ${settings.seed ?? '(random)'}`);
+  return lines.join('\n');
+}
+
+function buildJsonExport() {
+  const chat     = chats.find(c => c.id === currentChatId);
+  const settings = currentSettings();
+  return JSON.stringify({
+    title:       chat?.title ?? '',
+    created_at:  chat ? new Date(chat.createdAt).toISOString() : new Date().toISOString(),
+    exported_at: new Date().toISOString(),
+    model:       settings.model,
+    system_prompt: settings.systemPrompt || null,
+    parameters: {
+      temperature:       settings.temperature,
+      top_p:             settings.top_p,
+      frequency_penalty: settings.frequency_penalty,
+      presence_penalty:  settings.presence_penalty,
+      max_tokens:        settings.max_tokens,
+      top_k:             settings.top_k,
+      seed:              settings.seed,
+    },
+    messages: exportMessages(settings),
+  }, null, 2);
+}
+
+function slugify(str) {
+  const s = (str ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  return s || 'chat';
+}
+
+async function shareOrDownload(filename, content, mimeType) {
+  try {
+    const file = new File([content], filename, { type: mimeType });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: filename });
+      return;
+    }
+  } catch (err) {
+    if (err?.name === 'AbortError') return;
+  }
+  const blob = new Blob([content], { type: mimeType });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function closeDownloadMenu() {
+  downloadMenu.classList.remove('open');
+  downloadBtn.setAttribute('aria-expanded', 'false');
+}
+
+downloadBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  if (downloadBtn.disabled) return;
+  const open = downloadMenu.classList.toggle('open');
+  downloadBtn.setAttribute('aria-expanded', String(open));
+});
+
+document.addEventListener('click', e => {
+  if (!downloadMenu.contains(e.target) && e.target !== downloadBtn) closeDownloadMenu();
+});
+
+downloadTextBtn.addEventListener('click', () => {
+  closeDownloadMenu();
+  const chat = chats.find(c => c.id === currentChatId);
+  shareOrDownload(`${slugify(chat?.title)}.txt`, buildTextExport(), 'text/plain');
+});
+
+downloadJsonBtn.addEventListener('click', () => {
+  closeDownloadMenu();
+  const chat = chats.find(c => c.id === currentChatId);
+  shareOrDownload(`${slugify(chat?.title)}.json`, buildJsonExport(), 'application/json');
 });

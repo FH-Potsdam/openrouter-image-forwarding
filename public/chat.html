@@ -52,6 +52,65 @@
       min-height: 0;
     }
 
+    .chat-header {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: relative;
+    }
+
+    .btn-download {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color .12s, color .12s;
+    }
+    .btn-download:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .btn-download:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-download svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .download-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      min-width: 160px;
+      z-index: 20;
+      display: none;
+    }
+    .download-menu.open { display: block; }
+    .download-menu button {
+      display: block;
+      width: 100%;
+      padding: 9px 12px;
+      background: transparent;
+      border: none;
+      font: inherit;
+      font-size: 13px;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+    .download-menu button:hover { background: var(--main-bg); color: var(--primary); }
+    .download-menu button + button { border-top: 1px solid var(--border); }
+
     .messages {
       flex: 1;
       overflow-y: auto;
@@ -465,6 +524,19 @@
       <!-- Chat column -->
       <div class="chat-col">
 
+        <div class="chat-header">
+          <button type="button" class="btn-download" id="btn-download" data-i18n-aria-label="chat_download" aria-haspopup="true" aria-expanded="false">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M10 3v10m0 0l-4-4m4 4l4-4M4 16h12" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span data-i18n="chat_download">Download</span>
+          </button>
+          <div class="download-menu" id="download-menu">
+            <button type="button" id="download-text" data-i18n="chat_download_text">Download as text</button>
+            <button type="button" id="download-json" data-i18n="chat_download_json">Download as JSON</button>
+          </div>
+        </div>
+
         <div class="messages" id="messages">
           <div class="empty-state" data-i18n="chat_empty_state">Start a conversation by typing a message below.</div>
         </div>
@@ -492,6 +564,7 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<script src="config.js"></script>
 <script src="privacy-modal.js"></script>
 <script src="chat.js"></script>
 </body>

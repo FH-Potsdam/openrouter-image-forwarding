@@ -126,6 +126,10 @@
       chat_input_placeholder: 'Message…',
       chat_send: 'Send',
       chat_input_hint: '⌘↵ or Ctrl↵ to send',
+      chat_download: 'Download',
+      chat_download_text: 'Download as text',
+      chat_download_json: 'Download as JSON',
+      chat_download_empty: 'This conversation has no messages yet.',
 
       // chat.js dynamic
       chat_no_key_title: 'API key required',
@@ -291,6 +295,10 @@
       chat_input_placeholder: 'Nachricht…',
       chat_send: 'Senden',
       chat_input_hint: '⌘↵ oder Ctrl↵ zum Senden',
+      chat_download: 'Herunterladen',
+      chat_download_text: 'Als Text herunterladen',
+      chat_download_json: 'Als JSON herunterladen',
+      chat_download_empty: 'Dieses Gespräch enthält noch keine Nachrichten.',
 
       // chat.js dynamic
       chat_no_key_title: 'API-Schlüssel erforderlich',
