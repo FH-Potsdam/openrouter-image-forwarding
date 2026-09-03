@@ -1,4 +1,11 @@
 (function () {
+  const DEFAULTS = {
+    privacy_title: 'Data Protection Notice',
+    privacy_body: 'For your privacy, <strong>no information is stored beyond this browser session</strong>. Your API key, conversations, and generated images exist only in your browser\'s memory and will be permanently lost when you close or reload this page.',
+    privacy_ok: 'I understand',
+  };
+  const t = window.I18n ? window.I18n.t : function (key) { return DEFAULTS[key]; };
+
   const overlay = document.createElement('div');
   overlay.id = 'privacy-overlay';
   overlay.innerHTML = `
@@ -9,13 +16,9 @@
           <path d="M9 12l2 2 4-4"/>
         </svg>
       </div>
-      <h2 id="privacy-title">Data Protection Notice</h2>
-      <p>
-        For your privacy, <strong>no information is stored beyond this browser session</strong>.
-        Your API key, conversations, and generated images exist only in your browser's memory
-        and will be permanently lost when you close or reload this page.
-      </p>
-      <button id="privacy-ok" class="btn-primary">I understand</button>
+      <h2 id="privacy-title">${t('privacy_title')}</h2>
+      <p>${t('privacy_body')}</p>
+      <button id="privacy-ok" class="btn-primary">${t('privacy_ok')}</button>
     </div>
   `;
   document.body.appendChild(overlay);

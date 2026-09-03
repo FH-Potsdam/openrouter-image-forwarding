@@ -164,6 +164,11 @@
 
       // common
       loading_models: 'Loading models…',
+
+      // privacy-modal.js
+      privacy_title: 'Data Protection Notice',
+      privacy_body: 'For your privacy, <strong>no information is stored beyond this browser session</strong>. Your API key, conversations, and generated images exist only in your browser\'s memory and will be permanently lost when you close or reload this page.',
+      privacy_ok: 'I understand',
     },
 
     de: {
@@ -324,6 +329,11 @@
 
       // common
       loading_models: 'Modelle werden geladen…',
+
+      // privacy-modal.js
+      privacy_title: 'Datenschutzhinweis',
+      privacy_body: 'Zu Ihrem Schutz werden <strong>keine Daten über diese Browsersitzung hinaus gespeichert</strong>. Ihr API-Schlüssel, Ihre Gespräche und generierten Bilder existieren nur im Speicher Ihres Browsers und gehen beim Schließen oder Neuladen dieser Seite unwiderruflich verloren.',
+      privacy_ok: 'Verstanden',
     },
   };
 
