@@ -108,6 +108,33 @@
     .btn-download:disabled { opacity: .4; cursor: not-allowed; }
     .btn-download svg { width: 14px; height: 14px; flex-shrink: 0; }
 
+    .btn-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color .12s, color .12s, background .12s;
+    }
+    .btn-toggle:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-toggle svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .btn-toggle[hidden] { display: none; }
+    .btn-toggle.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .btn-toggle .icon-speech-on { display: none; }
+    .btn-toggle.active .icon-speech-off { display: none; }
+    .btn-toggle.active .icon-speech-on { display: block; }
+
     .download-menu {
       position: absolute;
       top: calc(100% + 4px);
@@ -583,6 +610,32 @@
             </div>
           </details>
 
+          <details class="advanced-toggle" id="speech-settings">
+            <summary data-i18n="chat_speech_summary">Speech output</summary>
+            <div class="advanced-body">
+              <div class="field">
+                <label for="chat-speech-voice" data-i18n="chat_speech_voice_label">Voice</label>
+                <select id="chat-speech-voice">
+                  <option value="" data-i18n="chat_speech_voice_default">System default</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="chat-speech-rate" data-i18n="chat_speech_rate_label">Rate</label>
+                <div class="range-row">
+                  <input type="range" id="chat-speech-rate" min="0.5" max="1.5" step="0.01" value="0.95" />
+                  <span class="range-val" id="chat-speech-rate-val">0.95</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="chat-speech-pitch" data-i18n="chat_speech_pitch_label">Pitch</label>
+                <div class="range-row">
+                  <input type="range" id="chat-speech-pitch" min="0" max="2" step="0.01" value="1" />
+                  <span class="range-val" id="chat-speech-pitch-val">1.00</span>
+                </div>
+              </div>
+            </div>
+          </details>
+
           <div class="settings-btn-row">
             <button type="button" class="btn-secondary" id="btn-export-settings" data-i18n="chat_export_settings">Export settings</button>
             <button type="button" class="btn-secondary" id="btn-import-settings" data-i18n="chat_import_settings">Import settings</button>
@@ -597,6 +650,17 @@
 
         <div class="chat-header">
           <button type="button" class="btn-danger-outline" id="btn-clear" data-i18n="chat_clear">Clear conversation</button>
+          <button type="button" class="btn-toggle" id="btn-speech" aria-pressed="false" data-i18n-aria-label="chat_speech_aria" aria-label="Read responses aloud">
+            <svg class="icon-speech-off" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M3 8v4h3l4 3V5L6 8H3z" stroke-linejoin="round"/>
+              <path d="M13 8l4 4m0-4l-4 4" stroke-linecap="round"/>
+            </svg>
+            <svg class="icon-speech-on" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M3 8v4h3l4 3V5L6 8H3z" stroke-linejoin="round"/>
+              <path d="M13 7a4 4 0 010 6M15.5 4.5a8 8 0 010 11" stroke-linecap="round"/>
+            </svg>
+            <span data-i18n="chat_speech_label">Speech</span>
+          </button>
           <button type="button" class="btn-download" id="btn-download" data-i18n-aria-label="chat_download" aria-haspopup="true" aria-expanded="false">
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M10 3v10m0 0l-4-4m4 4l4-4M4 16h12" stroke-linecap="round" stroke-linejoin="round"/>

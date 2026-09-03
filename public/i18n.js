@@ -142,6 +142,14 @@
       chat_download_text: 'Download as text',
       chat_download_json: 'Download as JSON',
       chat_download_empty: 'This conversation has no messages yet.',
+      chat_speech_label: 'Speech',
+      chat_speech_aria: 'Read responses aloud',
+      chat_speech_unsupported: 'Speech output is not supported in this browser.',
+      chat_speech_summary: 'Speech output',
+      chat_speech_voice_label: 'Voice',
+      chat_speech_voice_default: 'System default',
+      chat_speech_rate_label: 'Rate',
+      chat_speech_pitch_label: 'Pitch',
 
       // chat.js dynamic
       chat_no_key_title: 'API key required',
@@ -323,6 +331,14 @@
       chat_download_text: 'Als Text herunterladen',
       chat_download_json: 'Als JSON herunterladen',
       chat_download_empty: 'Dieses Gespräch enthält noch keine Nachrichten.',
+      chat_speech_label: 'Sprachausgabe',
+      chat_speech_aria: 'Antworten vorlesen',
+      chat_speech_unsupported: 'Sprachausgabe wird von diesem Browser nicht unterstützt.',
+      chat_speech_summary: 'Sprachausgabe',
+      chat_speech_voice_label: 'Stimme',
+      chat_speech_voice_default: 'Systemstandard',
+      chat_speech_rate_label: 'Geschwindigkeit',
+      chat_speech_pitch_label: 'Tonhöhe',
 
       // chat.js dynamic
       chat_no_key_title: 'API-Schlüssel erforderlich',

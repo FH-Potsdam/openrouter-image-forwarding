@@ -42,6 +42,13 @@ const downloadJsonBtn = document.getElementById('download-json');
 const exportSettingsBtn  = document.getElementById('btn-export-settings');
 const importSettingsBtn  = document.getElementById('btn-import-settings');
 const importSettingsFile = document.getElementById('import-settings-file');
+const speechBtn      = document.getElementById('btn-speech');
+const speechSettings = document.getElementById('speech-settings');
+const speechVoiceSelect = document.getElementById('chat-speech-voice');
+const speechRateInput   = document.getElementById('chat-speech-rate');
+const speechRateVal     = document.getElementById('chat-speech-rate-val');
+const speechPitchInput  = document.getElementById('chat-speech-pitch');
+const speechPitchVal    = document.getElementById('chat-speech-pitch-val');
 
 clearBtn.title = I18n.t('chat_clear');
 
@@ -200,6 +207,7 @@ function renderHistoryIntoMessages(chatHistory) {
 
 function switchToChat(id) {
   if (id === currentChatId) return;
+  stopSpeaking();
   flushCurrentHistory();
   saveChatsToStorage();
   const chat = chats.find(c => c.id === id);
@@ -212,6 +220,7 @@ function switchToChat(id) {
 }
 
 function startNewChat() {
+  stopSpeaking();
   flushCurrentHistory();
   const chat = makeChat();
   chats.unshift(chat);
@@ -226,6 +235,7 @@ function startNewChat() {
 function deleteChat(id) {
   const idx = chats.findIndex(c => c.id === id);
   if (idx === -1) return;
+  if (id === currentChatId) stopSpeaking();
   chats.splice(idx, 1);
   saveChatsToStorage();
   if (id !== currentChatId) { renderSidebar(); return; }
@@ -238,6 +248,123 @@ function deleteChat(id) {
   } else {
     startNewChat();
   }
+}
+
+// ─── Speech output (Web Speech API) ──────────────────────────────────────────
+
+const SPEECH_STORAGE_KEY = 'chatai_speech_enabled';
+const SPEECH_VOICE_KEY   = 'chatai_speech_voice';
+const SPEECH_RATE_KEY    = 'chatai_speech_rate';
+const SPEECH_PITCH_KEY   = 'chatai_speech_pitch';
+const speechSupported = 'speechSynthesis' in window;
+let speechEnabled = speechSupported && localStorage.getItem(SPEECH_STORAGE_KEY) === 'true';
+
+function updateSpeechBtn() {
+  speechBtn.classList.toggle('active', speechEnabled);
+  speechBtn.setAttribute('aria-pressed', String(speechEnabled));
+}
+
+function stopSpeaking() {
+  if (speechSupported) window.speechSynthesis.cancel();
+}
+
+// Picks a sensible default: a voice matching the UI language, preferring
+// ones whose name suggests a higher-quality engine (OS-provided, not ours).
+function pickDefaultVoice(voices) {
+  const lang = I18n.LANG.toLowerCase();
+  const matchesLang = v => v.lang.toLowerCase().startsWith(lang);
+  return voices.find(v => matchesLang(v) && /enhanced|premium|natural/i.test(v.name))
+      ?? voices.find(matchesLang)
+      ?? null;
+}
+
+function populateVoiceSelect() {
+  if (!speechSupported) return;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return;
+
+  const stored = localStorage.getItem(SPEECH_VOICE_KEY) ?? '';
+  speechVoiceSelect.innerHTML = '';
+
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = I18n.t('chat_speech_voice_default');
+  speechVoiceSelect.appendChild(defaultOpt);
+
+  for (const v of [...voices].sort((a, b) => a.name.localeCompare(b.name))) {
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = `${v.name} (${v.lang})`;
+    speechVoiceSelect.appendChild(opt);
+  }
+
+  if (stored && [...speechVoiceSelect.options].some(o => o.value === stored)) {
+    speechVoiceSelect.value = stored;
+  } else {
+    const preferred = pickDefaultVoice(voices);
+    if (preferred) speechVoiceSelect.value = preferred.name;
+  }
+}
+
+function getSelectedVoice() {
+  if (!speechSupported) return null;
+  const name = speechVoiceSelect.value;
+  if (!name) return null;
+  return window.speechSynthesis.getVoices().find(v => v.name === name) ?? null;
+}
+
+function speak(text) {
+  if (!speechEnabled) return;
+  const plain = new DOMParser().parseFromString(renderMarkdown(text), 'text/html')
+    .body.textContent.trim();
+  if (!plain) return;
+  stopSpeaking();
+  const utterance = new SpeechSynthesisUtterance(plain);
+  const voice = getSelectedVoice();
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang  = voice.lang;
+  } else {
+    utterance.lang = I18n.LANG;
+  }
+  utterance.rate  = parseFloat(speechRateInput.value)  || 1;
+  utterance.pitch = parseFloat(speechPitchInput.value) || 1;
+  window.speechSynthesis.speak(utterance);
+}
+
+if (!speechSupported) {
+  speechBtn.hidden = true;
+  speechSettings.hidden = true;
+} else {
+  updateSpeechBtn();
+  speechBtn.addEventListener('click', () => {
+    speechEnabled = !speechEnabled;
+    localStorage.setItem(SPEECH_STORAGE_KEY, String(speechEnabled));
+    updateSpeechBtn();
+    if (!speechEnabled) stopSpeaking();
+  });
+
+  const storedRate  = parseFloat(localStorage.getItem(SPEECH_RATE_KEY));
+  const storedPitch = parseFloat(localStorage.getItem(SPEECH_PITCH_KEY));
+  if (!Number.isNaN(storedRate))  speechRateInput.value  = storedRate;
+  if (!Number.isNaN(storedPitch)) speechPitchInput.value = storedPitch;
+  speechRateVal.textContent  = parseFloat(speechRateInput.value).toFixed(2);
+  speechPitchVal.textContent = parseFloat(speechPitchInput.value).toFixed(2);
+
+  speechRateInput.addEventListener('input', () => {
+    speechRateVal.textContent = parseFloat(speechRateInput.value).toFixed(2);
+    localStorage.setItem(SPEECH_RATE_KEY, speechRateInput.value);
+  });
+  speechPitchInput.addEventListener('input', () => {
+    speechPitchVal.textContent = parseFloat(speechPitchInput.value).toFixed(2);
+    localStorage.setItem(SPEECH_PITCH_KEY, speechPitchInput.value);
+  });
+  speechVoiceSelect.addEventListener('change', () => {
+    localStorage.setItem(SPEECH_VOICE_KEY, speechVoiceSelect.value);
+  });
+
+  populateVoiceSelect();
+  window.speechSynthesis.addEventListener('voiceschanged', populateVoiceSelect);
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
@@ -500,6 +627,7 @@ async function sendMessage() {
     history.push({ role: 'user',      content });
     history.push({ role: 'assistant', content: assistantContent });
     downloadBtn.disabled = false;
+    speak(assistantContent);
 
     const chat = chats.find(c => c.id === currentChatId);
     if (chat) { chat.history = [...history]; saveChatsToStorage(); }
@@ -532,6 +660,7 @@ chatInput.addEventListener('input', function () {
 });
 
 clearBtn.addEventListener('click', () => {
+  stopSpeaking();
   history = [];
   const chat = chats.find(c => c.id === currentChatId);
   if (chat) {
