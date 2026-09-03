@@ -500,63 +500,84 @@
             <div class="advanced-body">
 
               <div class="field">
-                <label for="chat-temperature" data-i18n="chat_temperature_label">Temperature</label>
+                <div class="field-label-row">
+                  <label for="chat-temperature" data-i18n="chat_temperature_label">Temperature</label>
+                  <button type="button" class="info-icon" aria-expanded="false" data-i18n-aria-label="chat_info_toggle_aria" aria-label="More information"></button>
+                </div>
+                <p class="field-info" hidden data-i18n="chat_temperature_tooltip">Temperature controls the randomness with which the language model selects tokens. The higher the temperature, the more likely it is to select tokens that actually have a lower probability.</p>
                 <div class="range-row">
                   <input type="range" id="chat-temperature" min="0" max="2" step="0.01" value="1" />
                   <span class="range-val" id="chat-temperature-val">1.00</span>
                 </div>
-                <span class="field-hint" data-i18n="chat_temperature_hint">Randomness — 0 is deterministic, 2 is most creative.</span>
               </div>
 
               <div class="field">
-                <label for="chat-top-p" data-i18n="chat_top_p_label">Top P</label>
+                <div class="field-label-row">
+                  <label for="chat-top-p" data-i18n="chat_top_p_label">Top P</label>
+                  <button type="button" class="info-icon" aria-expanded="false" data-i18n-aria-label="chat_info_toggle_aria" aria-label="More information"></button>
+                </div>
+                <p class="field-info" hidden data-i18n="chat_top_p_tooltip">Top P is an alternative to temperature. The model considers the most probable tokens until their combined probability reaches the value p, then picks the next token from that group. A higher top-p value means more tokens are available to choose from.</p>
                 <div class="range-row">
                   <input type="range" id="chat-top-p" min="0" max="1" step="0.01" value="1" />
                   <span class="range-val" id="chat-top-p-val">1.00</span>
                 </div>
-                <span class="field-hint" data-i18n="chat_top_p_hint">Nucleus sampling — restrict to top P probability mass.</span>
               </div>
 
               <div class="field">
-                <label for="chat-freq-penalty" data-i18n="chat_freq_label">Frequency penalty</label>
+                <div class="field-label-row">
+                  <label for="chat-freq-penalty" data-i18n="chat_freq_label">Frequency penalty</label>
+                  <button type="button" class="info-icon" aria-expanded="false" data-i18n-aria-label="chat_info_toggle_aria" aria-label="More information"></button>
+                </div>
+                <p class="field-info" hidden data-i18n="chat_freq_tooltip">The frequency penalty reduces the probability that tokens already used will be generated again. The higher the value, the less likely repetitions become.</p>
                 <div class="range-row">
                   <input type="range" id="chat-freq-penalty" min="-2" max="2" step="0.01" value="0" />
                   <span class="range-val" id="chat-freq-penalty-val">0.00</span>
                 </div>
-                <span class="field-hint" data-i18n="chat_freq_hint">Penalise already-frequent tokens to reduce repetition.</span>
               </div>
 
               <div class="field">
-                <label for="chat-pres-penalty" data-i18n="chat_pres_label">Presence penalty</label>
+                <div class="field-label-row">
+                  <label for="chat-pres-penalty" data-i18n="chat_pres_label">Presence penalty</label>
+                  <button type="button" class="info-icon" aria-expanded="false" data-i18n-aria-label="chat_info_toggle_aria" aria-label="More information"></button>
+                </div>
+                <p class="field-info" hidden data-i18n="chat_pres_tooltip">The presence penalty reduces the probability that tokens already used will occur again. Here, only whether the token has appeared before matters, not how often.</p>
                 <div class="range-row">
                   <input type="range" id="chat-pres-penalty" min="-2" max="2" step="0.01" value="0" />
                   <span class="range-val" id="chat-pres-penalty-val">0.00</span>
                 </div>
-                <span class="field-hint" data-i18n="chat_pres_hint">Encourage new topics by penalising already-mentioned tokens.</span>
               </div>
 
               <div class="field">
-                <label for="chat-max-tokens" data-i18n="chat_max_tokens_label">Max tokens</label>
+                <div class="field-label-row">
+                  <label for="chat-max-tokens" data-i18n="chat_max_tokens_label">Max tokens</label>
+                  <button type="button" class="info-icon" aria-expanded="false" data-i18n-aria-label="chat_info_toggle_aria" aria-label="More information"></button>
+                </div>
+                <p class="field-info" hidden data-i18n="chat_max_tokens_tooltip">Max tokens sets the maximum number of tokens the language model may generate in a response.</p>
                 <input type="number" id="chat-max-tokens" min="1" max="131072"
                   data-i18n-placeholder="chat_max_tokens_placeholder"
                   placeholder="Model default" />
-                <span class="field-hint" data-i18n="chat_max_tokens_hint">Maximum tokens to generate. Leave empty for model default.</span>
               </div>
 
               <div class="field">
-                <label for="chat-top-k" data-i18n="chat_top_k_label">Top K</label>
+                <div class="field-label-row">
+                  <label for="chat-top-k" data-i18n="chat_top_k_label">Top K</label>
+                  <button type="button" class="info-icon" aria-expanded="false" data-i18n-aria-label="chat_info_toggle_aria" aria-label="More information"></button>
+                </div>
+                <p class="field-info" hidden data-i18n="chat_top_k_tooltip">Top K restricts the selection to the k most probable tokens. The next token is then chosen from this restricted set.</p>
                 <input type="number" id="chat-top-k" min="0"
                   data-i18n-placeholder="chat_top_k_placeholder"
                   placeholder="Disabled" />
-                <span class="field-hint" data-i18n="chat_top_k_hint">Limit sampling pool to top K tokens. Empty = disabled.</span>
               </div>
 
               <div class="field">
-                <label for="chat-seed" data-i18n="chat_seed_label">Seed</label>
+                <div class="field-label-row">
+                  <label for="chat-seed" data-i18n="chat_seed_label">Seed</label>
+                  <button type="button" class="info-icon" aria-expanded="false" data-i18n-aria-label="chat_info_toggle_aria" aria-label="More information"></button>
+                </div>
+                <p class="field-info" hidden data-i18n="chat_seed_tooltip">The seed sets the starting value for the random process used in token selection. Using the same seed, the same input, and the same model parameters will generally produce the same responses.</p>
                 <input type="number" id="chat-seed" min="0"
                   data-i18n-placeholder="chat_seed_placeholder"
                   placeholder="Random" />
-                <span class="field-hint" data-i18n="chat_seed_hint">Fixed seed for reproducible outputs.</span>
               </div>
 
             </div>

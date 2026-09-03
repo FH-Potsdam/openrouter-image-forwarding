@@ -692,3 +692,16 @@ importSettingsFile.addEventListener('change', async () => {
     alert(I18n.t('chat_import_settings_error'));
   }
 });
+
+// ─── Info toggles ───────────────────────────────────────────────────────────
+// Click toggles an inline info box between the label and the form control —
+// works the same with touch and mouse, and needs no viewport positioning.
+
+document.querySelectorAll('.info-icon').forEach(icon => {
+  const info = icon.closest('.field-label-row').nextElementSibling;
+  icon.addEventListener('click', () => {
+    const open = icon.getAttribute('aria-expanded') === 'true';
+    icon.setAttribute('aria-expanded', String(!open));
+    info.hidden = open;
+  });
+});

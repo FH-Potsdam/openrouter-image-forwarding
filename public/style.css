@@ -136,6 +136,47 @@ form { display: flex; flex-direction: column; gap: 16px; }
   line-height: 1.5;
 }
 
+.field-label-row { display: flex; align-items: center; gap: 6px; }
+
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border: none;
+  border-radius: 50%;
+  background: var(--text-hint);
+  color: var(--surface);
+  font-size: 10px;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .12s;
+}
+
+.info-icon::before { content: 'i'; }
+.info-icon:hover { background: var(--text-muted); }
+
+.info-icon[aria-expanded="true"] { background: var(--primary); }
+.info-icon[aria-expanded="true"]::before { content: '\00d7'; font-size: 13px; position: relative; top: -1px; }
+
+/* Toggled inline between the label row and the form control — no
+   hover/positioning needed, so it works the same on touch and desktop. */
+.field-info {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
 label {
   font-size: 12px;
   font-weight: 600;
