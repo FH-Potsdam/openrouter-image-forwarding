@@ -6,7 +6,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "open:key": "open http://127.0.0.1:5500/public/key.html",
+    "dev:open": "npm run dev & npm run open:key"
   },
   "dependencies": {
     "cors": "^2.8.5",
