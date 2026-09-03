@@ -38,6 +38,20 @@ for (const prefix of ['gen', 'i2p']) {
   if (thumb) thumb.src = PLACEHOLDER_SVG;
 }
 
+function showRefThumb(prefix, url) {
+  const thumb     = document.getElementById(`${prefix}-last-thumb`);
+  const removeBtn = document.getElementById(`btn-use-last-${prefix}`);
+  if (thumb) thumb.src = url;
+  if (removeBtn) removeBtn.hidden = false;
+}
+
+function hideRefThumb(prefix) {
+  const thumb     = document.getElementById(`${prefix}-last-thumb`);
+  const removeBtn = document.getElementById(`btn-use-last-${prefix}`);
+  if (thumb) thumb.src = PLACEHOLDER_SVG;
+  if (removeBtn) removeBtn.hidden = true;
+}
+
 function setSelectedRef(url, btn) {
   if (activeRefCardBtn === btn) { clearSelectedRef(); return; }
   if (activeRefCardBtn) {
@@ -48,13 +62,7 @@ function setSelectedRef(url, btn) {
   activeRefCardBtn = btn;
   btn.classList.add('active');
   btn.textContent = I18n.t('app_selected');
-  for (const prefix of ['gen', 'i2p']) {
-    const thumb    = document.getElementById(`${prefix}-last-thumb`);
-    const removeBtn = document.getElementById(`btn-use-last-${prefix}`);
-    if (!thumb) continue;
-    thumb.src = url;
-    if (removeBtn) removeBtn.hidden = false;
-  }
+  for (const prefix of ['gen', 'i2p']) showRefThumb(prefix, url);
 }
 
 function clearSelectedRef() {
@@ -64,12 +72,7 @@ function clearSelectedRef() {
   }
   selectedRef      = null;
   activeRefCardBtn = null;
-  for (const prefix of ['gen', 'i2p']) {
-    const thumb     = document.getElementById(`${prefix}-last-thumb`);
-    const removeBtn = document.getElementById(`btn-use-last-${prefix}`);
-    if (thumb) thumb.src = PLACEHOLDER_SVG;
-    if (removeBtn) removeBtn.hidden = true;
-  }
+  for (const prefix of ['gen', 'i2p']) hideRefThumb(prefix);
 }
 
 // ─── Tab switching ─────────────────────────────────────────────────────────────
@@ -196,14 +199,15 @@ function resizeImageClientSide(dataUrl, maxDimension = 1024) {
   });
 }
 
-function previewFile(file, previewEl) {
-  previewEl.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="preview" />`;
+function previewFile(file, prefix) {
+  const url = URL.createObjectURL(file);
+  if (selectedRef) clearSelectedRef();
+  showRefThumb(prefix, url);
 }
 
-function initDropZone(zoneId, inputId, previewId) {
-  const zone    = document.getElementById(zoneId);
-  const input   = document.getElementById(inputId);
-  const preview = previewId ? document.getElementById(previewId) : null;
+function initDropZone(zoneId, inputId, prefix) {
+  const zone  = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
   if (!zone) return;
 
   zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
@@ -214,25 +218,38 @@ function initDropZone(zoneId, inputId, previewId) {
     const file = e.dataTransfer?.files[0];
     if (file && input) {
       const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
-      if (preview) previewFile(file, preview);
+      previewFile(file, prefix);
     }
   });
-  if (input && preview) {
-    input.addEventListener('change', () => { if (input.files[0]) previewFile(input.files[0], preview); });
+  if (input) {
+    input.addEventListener('change', () => { if (input.files[0]) previewFile(input.files[0], prefix); });
   }
 }
 
-initDropZone('gen-drop',  'gen-ref-file', 'gen-ref-preview');
-initDropZone('i2p-drop',  'i2p-file',     'i2p-preview');
+initDropZone('gen-drop',  'gen-ref-file', 'gen');
+initDropZone('i2p-drop',  'i2p-file',     'i2p');
 
-// Clear selected reference when the user picks a new file or URL instead
-document.getElementById('gen-ref-file').addEventListener('change', () => { if (selectedRef) clearSelectedRef(); });
-document.getElementById('i2p-file').addEventListener('change',     () => { if (selectedRef) clearSelectedRef(); });
-document.getElementById('i2p-url').addEventListener('input',       () => { if (selectedRef) clearSelectedRef(); });
+// Show/clear the reference thumb when the user pastes or clears an image URL
+document.getElementById('i2p-url').addEventListener('input', () => {
+  if (selectedRef) clearSelectedRef();
+  const url = document.getElementById('i2p-url').value.trim();
+  if (url) showRefThumb('i2p', url);
+  else if (!document.getElementById('i2p-file').files[0]) hideRefThumb('i2p');
+});
 
-// "× Remove" buttons in the reference widgets
-document.getElementById('btn-use-last-gen').addEventListener('click', clearSelectedRef);
-document.getElementById('btn-use-last-i2p').addEventListener('click', clearSelectedRef);
+// "× Remove" buttons in the reference widgets — clear whichever source is active
+// (an uploaded file, a pasted URL, or a reference picked from a previous result)
+document.getElementById('btn-use-last-gen').addEventListener('click', () => {
+  document.getElementById('gen-ref-file').value = '';
+  if (selectedRef) clearSelectedRef();
+  else hideRefThumb('gen');
+});
+document.getElementById('btn-use-last-i2p').addEventListener('click', () => {
+  document.getElementById('i2p-file').value = '';
+  document.getElementById('i2p-url').value = '';
+  if (selectedRef) clearSelectedRef();
+  else hideRefThumb('i2p');
+});
 
 // ─── Result helpers ────────────────────────────────────────────────────────────
 
