@@ -39,6 +39,11 @@ const downloadBtn  = document.getElementById('btn-download');
 const downloadMenu = document.getElementById('download-menu');
 const downloadTextBtn = document.getElementById('download-text');
 const downloadJsonBtn = document.getElementById('download-json');
+const exportSettingsBtn  = document.getElementById('btn-export-settings');
+const importSettingsBtn  = document.getElementById('btn-import-settings');
+const importSettingsFile = document.getElementById('import-settings-file');
+
+clearBtn.title = I18n.t('chat_clear');
 
 // ─── Model loading ──────────────────────────────────────────────────────────
 
@@ -307,10 +312,82 @@ function showChatError(msg) {
   scrollBottom();
 }
 
+// ─── System prompt composition ───────────────────────────────────────────────
+
+function buildSystemPrompt() {
+  const role     = document.getElementById('chat-system-role').value.trim();
+  const tonality = document.getElementById('chat-system-tonality').value.trim();
+  const task     = document.getElementById('chat-system-task').value.trim();
+
+  const sections = [];
+  if (role)     sections.push(`# Role\n${role}`);
+  if (tonality) sections.push(`# Tonality\n${tonality}`);
+  if (task)     sections.push(`# Task\n${task}`);
+
+  return sections.join('\n\n');
+}
+
+// ─── Settings export / import ────────────────────────────────────────────────
+
+function buildSettingsExport() {
+  const maxTokens = document.getElementById('chat-max-tokens').value.trim();
+  const topK      = document.getElementById('chat-top-k').value.trim();
+  const seed      = document.getElementById('chat-seed').value.trim();
+
+  return {
+    name:     document.getElementById('chat-system-name').value.trim(),
+    role:     document.getElementById('chat-system-role').value.trim(),
+    tonality: document.getElementById('chat-system-tonality').value.trim(),
+    task:     document.getElementById('chat-system-task').value.trim(),
+    model:              modelSelect.value,
+    temperature:        parseFloat(document.getElementById('chat-temperature').value),
+    top_p:              parseFloat(document.getElementById('chat-top-p').value),
+    frequency_penalty:  parseFloat(document.getElementById('chat-freq-penalty').value),
+    presence_penalty:   parseFloat(document.getElementById('chat-pres-penalty').value),
+    max_tokens:         maxTokens ? parseInt(maxTokens, 10) : null,
+    top_k:              topK ? parseInt(topK, 10) : null,
+    seed:               seed ? parseInt(seed, 10) : null,
+  };
+}
+
+function applySettingsImport(data) {
+  document.getElementById('chat-system-name').value     = data.name ?? '';
+  document.getElementById('chat-system-role').value     = data.role ?? '';
+  document.getElementById('chat-system-tonality').value = data.tonality ?? '';
+  document.getElementById('chat-system-task').value     = data.task ?? '';
+
+  if (data.model) {
+    let opt = [...modelSelect.options].find(o => o.value === data.model);
+    if (!opt) {
+      opt = document.createElement('option');
+      opt.value       = data.model;
+      opt.textContent = data.model;
+      modelSelect.appendChild(opt);
+    }
+    modelSelect.value = data.model;
+  }
+
+  const sliders = [
+    ['chat-temperature',  'chat-temperature-val',  data.temperature,       1],
+    ['chat-top-p',        'chat-top-p-val',        data.top_p,             1],
+    ['chat-freq-penalty', 'chat-freq-penalty-val', data.frequency_penalty, 0],
+    ['chat-pres-penalty', 'chat-pres-penalty-val', data.presence_penalty,  0],
+  ];
+  for (const [id, valId, value, fallback] of sliders) {
+    const v = (typeof value === 'number' && !Number.isNaN(value)) ? value : fallback;
+    document.getElementById(id).value          = v;
+    document.getElementById(valId).textContent = v.toFixed(2);
+  }
+
+  document.getElementById('chat-max-tokens').value = data.max_tokens ?? '';
+  document.getElementById('chat-top-k').value      = data.top_k ?? '';
+  document.getElementById('chat-seed').value       = data.seed ?? '';
+}
+
 // ─── Build request body ──────────────────────────────────────────────────────
 
 function buildRequestBody(userContent) {
-  const systemPrompt = document.getElementById('chat-system').value.trim();
+  const systemPrompt = buildSystemPrompt();
   const messages     = [];
   if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
   messages.push(...history);
@@ -476,7 +553,7 @@ function currentSettings() {
   const seed      = document.getElementById('chat-seed').value.trim();
   return {
     model:              modelSelect.value,
-    systemPrompt:       document.getElementById('chat-system').value.trim(),
+    systemPrompt:       buildSystemPrompt(),
     temperature:        parseFloat(document.getElementById('chat-temperature').value),
     top_p:              parseFloat(document.getElementById('chat-top-p').value),
     frequency_penalty:  parseFloat(document.getElementById('chat-freq-penalty').value),
@@ -593,4 +670,25 @@ downloadJsonBtn.addEventListener('click', () => {
   closeDownloadMenu();
   const chat = chats.find(c => c.id === currentChatId);
   shareOrDownload(`${slugify(chat?.title)}.json`, buildJsonExport(), 'application/json');
+});
+
+// ─── Settings export / import ────────────────────────────────────────────────
+
+exportSettingsBtn.addEventListener('click', () => {
+  const settings = buildSettingsExport();
+  shareOrDownload(`${slugify(settings.name)}.json`, JSON.stringify(settings, null, 2), 'application/json');
+});
+
+importSettingsBtn.addEventListener('click', () => importSettingsFile.click());
+
+importSettingsFile.addEventListener('change', async () => {
+  const file = importSettingsFile.files[0];
+  importSettingsFile.value = '';
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    applySettingsImport(data);
+  } catch {
+    alert(I18n.t('chat_import_settings_error'));
+  }
 });

@@ -43,6 +43,14 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .settings-btn-row {
+      display: flex;
+      gap: 8px;
+    }
+    .settings-btn-row .btn-secondary {
+      flex: 1;
+    }
+
     /* Chat column */
     .chat-col {
       display: flex;
@@ -57,11 +65,29 @@
       display: flex;
       justify-content: flex-end;
       align-items: center;
+      gap: 8px;
       padding: 10px 16px;
       border-bottom: 1px solid var(--border);
       background: var(--surface);
       position: relative;
     }
+
+    .btn-danger-outline {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color .12s, color .12s, background .12s;
+    }
+    .btn-danger-outline:hover { border-color: #c53030; color: #c53030; background: #fff5f5; }
 
     .btn-download {
       display: flex;
@@ -442,9 +468,29 @@
             <summary data-i18n="chat_system_summary">System prompt</summary>
             <div class="advanced-body">
               <div class="field">
-                <textarea id="chat-system" rows="5"
-                  data-i18n-placeholder="chat_system_placeholder"
+                <label for="chat-system-name" data-i18n="chat_system_name_label">Name</label>
+                <input type="text" id="chat-system-name"
+                  data-i18n-placeholder="chat_system_name_placeholder"
+                  placeholder="e.g. Support agent" />
+                <span class="field-hint" data-i18n="chat_system_name_hint">For your reference only — not sent to the model.</span>
+              </div>
+              <div class="field">
+                <label for="chat-system-role" data-i18n="chat_system_role_label">Role</label>
+                <textarea id="chat-system-role" rows="3"
+                  data-i18n-placeholder="chat_system_role_placeholder"
                   placeholder="You are a helpful assistant."></textarea>
+              </div>
+              <div class="field">
+                <label for="chat-system-tonality" data-i18n="chat_system_tonality_label">Tonality</label>
+                <textarea id="chat-system-tonality" rows="3"
+                  data-i18n-placeholder="chat_system_tonality_placeholder"
+                  placeholder="Friendly, concise, and professional."></textarea>
+              </div>
+              <div class="field">
+                <label for="chat-system-task" data-i18n="chat_system_task_label">Task</label>
+                <textarea id="chat-system-task" rows="3"
+                  data-i18n-placeholder="chat_system_task_placeholder"
+                  placeholder="Answer the user's questions as accurately as possible."></textarea>
               </div>
             </div>
           </details>
@@ -516,7 +562,11 @@
             </div>
           </details>
 
-          <button type="button" class="btn-secondary" id="btn-clear" data-i18n="chat_clear">Clear conversation</button>
+          <div class="settings-btn-row">
+            <button type="button" class="btn-secondary" id="btn-export-settings" data-i18n="chat_export_settings">Export settings</button>
+            <button type="button" class="btn-secondary" id="btn-import-settings" data-i18n="chat_import_settings">Import settings</button>
+          </div>
+          <input type="file" id="import-settings-file" accept="application/json" hidden />
 
         </form>
       </div>
@@ -525,6 +575,7 @@
       <div class="chat-col">
 
         <div class="chat-header">
+          <button type="button" class="btn-danger-outline" id="btn-clear" data-i18n="chat_clear">Clear conversation</button>
           <button type="button" class="btn-download" id="btn-download" data-i18n-aria-label="chat_download" aria-haspopup="true" aria-expanded="false">
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
               <path d="M10 3v10m0 0l-4-4m4 4l4-4M4 16h12" stroke-linecap="round" stroke-linejoin="round"/>
