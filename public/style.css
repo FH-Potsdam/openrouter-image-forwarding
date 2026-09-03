@@ -53,12 +53,31 @@ body {
 }
 
 .logo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
   color: #fff;
   font-weight: 700;
   font-size: 15px;
   letter-spacing: -.3px;
   padding: 20px 16px 14px;
   border-bottom: 1px solid #222;
+}
+.logo-mark {
+  display: block;
+  width: auto;
+  height: 25px;
+  max-width: 104px;
+  object-fit: contain;
+}
+.logo-label {
+  display: block;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+  line-height: 1.1;
 }
 
 .sidebar nav {

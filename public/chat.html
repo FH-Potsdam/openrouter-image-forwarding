@@ -237,7 +237,16 @@
       gap: 6px;
       padding: 0 6px 8px;
     }
-    .sidebar-top .logo { padding: 16px 10px 6px; border-bottom: none; }
+    .sidebar-top .logo {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 16px 10px 6px;
+      border-bottom: none;
+    }
+    .sidebar-top .logo-mark { height: 23px; max-width: 92px; }
+    .sidebar-top .logo-label { font-size: 14px; }
 
     .btn-new-chat {
       display: flex;
@@ -338,7 +347,10 @@
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-top">
-      <div class="logo" data-i18n="logo_chat_app">Chat AI</div>
+      <div class="logo">
+        <img class="logo-mark" src="/assets/image-ai-logo.svg" alt="Image AI logo" />
+        <span class="logo-label" data-i18n="logo_chat_app">Chat AI</span>
+      </div>
       <button class="btn-new-chat" id="btn-new-chat">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M10 4v12M4 10h12"/>
