@@ -2,7 +2,7 @@
 
 // ─── Config & key guard ─────────────────────────────────────────────────────
 
-const BASE_PATH = '/images';
+const BASE_PATH = CONFIG.BASE_PATH;
 const API_KEY   = new URLSearchParams(location.search).get('key') ?? '';
 
 if (!API_KEY) {

@@ -1,6 +1,6 @@
 // ─── API key from URL param ────────────────────────────────────────────────────
 
-const BASE_PATH = '/images';
+const BASE_PATH = CONFIG.BASE_PATH;
 
 const params = new URLSearchParams(location.search);
 const API_KEY = params.get('key') ?? '';
