@@ -19,6 +19,7 @@ A lightweight Node.js proxy server and browser-based chat UI that connects to th
 - **Localization** — EN/DE language toggle available on every page, driven by `public/i18n.js`
 - **Error handling** — maps API error codes (invalid key, no credits, rate limits, etc.) to plain-language messages
 - **Key via URL** — no server-side secrets; each user supplies their own API key in the URL
+- **Guided key entry** — `key.html` lets a user paste their API key once and pick a destination (Chat or Images); the key is then automatically attached to that page's URL
 - **Privacy notice** — a data-protection modal is shown on every page load of the chat and image tools, informing users that nothing is persisted beyond the browser session
 
 ## Requirements
@@ -36,7 +37,7 @@ npm install
 npm run dev
 
 # 3. Open the app — replace YOUR_KEY with your OpenRouter key
-open http://localhost:3000/images/chat.html?key=YOUR_KEY
+open http://localhost:3000/chat.html?key=YOUR_KEY
 ```
 
 For production:
@@ -51,18 +52,16 @@ The port defaults to `3000` and can be overridden with a `PORT` environment vari
 PORT=1515
 ```
 
-All pages and API routes are served under the `/images` base path (see [Project structure](#project-structure)), so a page always looks like `http://localhost:<PORT>/images/<page>.html`.
-
-`npm run open:key` / `npm run dev:open` instead open `public/key.html` directly through VS Code Live Server on port `5500`; in that setup, point `public/config.js`'s `BASE_PATH` at the running backend (e.g. `http://localhost:3000/images`).
+`npm run open:key` / `npm run dev:open` instead open `public/key.html` directly through VS Code Live Server on port `5500`; in that setup, point `public/config.js`'s `BASE_PATH` at the running backend.
 
 ## Pages
 
-### `/images/chat.html` — Chat interface
+### `/chat.html` — Chat interface
 
 The main chat application. Requires a `key` URL parameter containing your OpenRouter API key.
 
 ```
-http://localhost:3000/images/chat.html?key=YOUR_KEY
+http://localhost:3000/chat.html?key=YOUR_KEY
 ```
 
 If no key is present the page replaces itself with an instruction screen. Assistant responses are rendered as formatted markdown (headings, lists, fenced code blocks with syntax-aware theming, tables, blockquotes).
@@ -73,37 +72,37 @@ The system prompt is composed from four fields — **Name** (UI-only, shown in t
 
 Assistant replies can be read aloud via the speech-output toggle in the chat header, with voice, rate, and pitch configurable in a dedicated settings section. Conversations can be downloaded as text or JSON, or cleared, from the chat header.
 
-### `/images/image.html` — Image tools
+### `/image.html` — Image tools
 
 Three image-related tools in one page: **Generate Image**, **Image to Prompt**, and **Improve Prompt**. Requires the same `key` URL parameter and links back to the chat page preserving the key.
 
 ```
-http://localhost:3000/images/image.html?key=YOUR_KEY
+http://localhost:3000/image.html?key=YOUR_KEY
 ```
 
 The reference image used for img2img generation can come from an uploaded file (drag-and-drop or file picker), a pasted image URL, or a previous result reused as a reference — all sharing one preview box with a Remove button that clears whichever source is active.
 
-### `/images/key.html` — API key entry
+### `/key.html` — API key entry
 
-A standalone form that accepts an API key. After submitting, the user chooses where to go: **Images** opens `/images/image.html` and **Chat** opens `/images/chat.html`, both with `?key=` appended. Not linked from the main application — share this URL with users who need a guided entry point.
+The guided entry point for users who don't already have a `?key=` URL. A standalone form where the user pastes their OpenRouter API key once; on submit they choose a destination — **Chat** or **Images** — and the key is automatically attached as `?key=` to that page's URL, so the user never has to build the link themselves. Not linked from the main application — share this URL directly with new users.
 
 ```
-http://localhost:3000/images/key.html
+http://localhost:3000/key.html
 ```
 
-### `/images/credits.html` — API key details
+### `/credits.html` — API key details
 
 Shows details for the key passed in the URL, fetched directly from the browser via `GET https://openrouter.ai/api/v1/key` (not proxied through the local server). Displays label, credit limit, remaining credits, limit reset cadence, all-time/daily/weekly/monthly usage (regular and BYOK), free-tier status, and whether BYOK usage counts toward the limit.
 
 ```
-http://localhost:3000/images/credits.html?key=YOUR_KEY
+http://localhost:3000/credits.html?key=YOUR_KEY
 ```
 
 ## Project structure
 
 ```
 magnific-forwarding/
-├── server.js          # Express proxy server (serves everything under /images)
+├── server.js          # Express proxy server
 ├── package.json
 ├── .env               # PORT override (optional)
 ├── .env.example
@@ -129,19 +128,19 @@ Because multiple users each supply their own key, a single running server instan
 
 ## Backend API routes
 
-All routes are mounted under `/images` and require the `x-api-key` request header.
+All routes require the `x-api-key` request header.
 
 | Method | Route | Description |
 |--------|-------|-------------|
-| `GET` | `/images/api/models` | Returns the list of models available to the key, proxied from `GET https://openrouter.ai/api/v1/models` |
-| `POST` | `/images/api/chat` | Streams a chat completion, proxied from `POST https://openrouter.ai/api/v1/chat/completions` |
-| `POST` | `/images/api/generate-image` | Generates an image via `chat/completions` with `modalities: ["image"]`; accepts an optional `reference_image` (base64 data URL or HTTPS URL) for img2img and an optional `aspect_ratio` |
-| `POST` | `/images/api/image-to-prompt` | Streams a generated prompt describing an uploaded image, using a fixed server-side system prompt |
-| `POST` | `/images/api/improve-prompt` | Streams an expanded, detailed version of a rough prompt, using a fixed server-side system prompt |
+| `GET` | `/api/models` | Returns the list of models available to the key, proxied from `GET https://openrouter.ai/api/v1/models` |
+| `POST` | `/api/chat` | Streams a chat completion, proxied from `POST https://openrouter.ai/api/v1/chat/completions` |
+| `POST` | `/api/generate-image` | Generates an image via `chat/completions` with `modalities: ["image"]`; accepts an optional `reference_image` (base64 data URL or HTTPS URL) for img2img and an optional `aspect_ratio` |
+| `POST` | `/api/image-to-prompt` | Streams a generated prompt describing an uploaded image, using a fixed server-side system prompt |
+| `POST` | `/api/improve-prompt` | Streams an expanded, detailed version of a rough prompt, using a fixed server-side system prompt |
 
 Any base64 reference/uploaded image is resized server-side (via `sharp`) so its longest edge is ≤ 1024px before being sent to OpenRouter; HTTPS image URLs are passed through unchanged. The JSON body limit is 20 MB to accommodate base64 images.
 
-### `/images/api/chat` request body
+### `/api/chat` request body
 
 ```json
 {
@@ -191,7 +190,7 @@ HTTP error codes from OpenRouter are forwarded to the browser. The frontend maps
 
 ## Model loading
 
-On startup the frontend fetches `/images/api/models` and populates the model selector, grouping models by provider. While the request is in flight a curated fallback list of seven popular models is shown so the user can start chatting immediately. If the fetch fails, the fallback list remains.
+On startup the frontend fetches `/api/models` and populates the model selector, grouping models by provider. While the request is in flight a curated fallback list of seven popular models is shown so the user can start chatting immediately. If the fetch fails, the fallback list remains.
 
 ## License
 
